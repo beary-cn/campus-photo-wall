@@ -1,27 +1,30 @@
-// ============================================================
-// 校园图片墙 - 公共脚本
-// 数据加载思路与原版一致：
-//   data/folders.json              -> 所有图集文件夹名列表
-//   data/<文件夹>/<文件夹>.json     -> 该图集的描述信息
-//   data/<文件夹>/<图片文件名>      -> 图片资源
-// ============================================================
+/* ============================================================
+   校园照片墙 - 公共脚本
+   ------------------------------------------------------------
+   数据约定（与原项目一致）：
+     data/folders.json                -> 所有图集文件夹名列表
+     data/<文件夹>/<文件夹>.json     -> 该图集的描述信息
+     data/<文件夹>/<图片文件名>      -> 图片资源
 
-const DATA_PATH = 'data';
+   页面位于 pages/html/ 下，资源位于 ../data/ 下。
+   ============================================================ */
+
+const DATA_PATH = '../data';
 
 // 占位图（图片缺失或加载失败时显示）
 const PLACEHOLDER_IMG = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600">'
-    + '<rect fill="#e8eaed" width="800" height="600"/>'
-    + '<g fill="#9aa0a6" font-family="sans-serif">'
-    + '<rect x="330" y="230" width="140" height="100" rx="8" fill="none" stroke="#9aa0a6" stroke-width="6"/>'
-    + '<circle cx="365" cy="262" r="10" fill="#9aa0a6"/>'
-    + '<path d="M340 320 l40 -45 l30 30 l25 -25 l35 40 z" fill="#9aa0a6"/>'
-    + '<text x="400" y="380" text-anchor="middle" font-size="22">暂无图片</text>'
-    + '</g></svg>'
+    '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600">' +
+    '<rect fill="#e8eaed" width="800" height="600"/>' +
+    '<g fill="#9aa0a6" font-family="sans-serif">' +
+    '<rect x="330" y="230" width="140" height="100" rx="8" fill="none" stroke="#9aa0a6" stroke-width="6"/>' +
+    '<circle cx="365" cy="262" r="10" fill="#9aa0a6"/>' +
+    '<path d="M340 320 l40 -45 l30 30 l25 -25 l35 40 z" fill="#9aa0a6"/>' +
+    '<text x="400" y="380" text-anchor="middle" font-size="22">暂无图片</text>' +
+    '</g></svg>'
 );
 window.__PH__ = PLACEHOLDER_IMG;
 
-// 分类配置（可在图集 JSON 的 category / categories 字段中使用）
+// 分类配置（图集 JSON 的 category / categories 字段使用这些 key）
 const CATEGORIES = [
     { key: '校园风光', icon: '🏞️', color: '#4a90d9' },
     { key: '课堂瞬间', icon: '📖', color: '#e67e22' },
@@ -48,53 +51,9 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ========== 顶部导航栏 ==========
-function renderNavbar(activePage) {
-    const nav = document.createElement('nav');
-    nav.className = 'navbar';
-
-    const links = [
-        { href: 'index.html', text: '首页', key: 'index' },
-        { href: 'wall.html', text: '照片墙', key: 'wall' }
-    ];
-
-    nav.innerHTML = `
-        <a class="navbar-brand" href="index.html">
-            <span class="navbar-logo">🎓</span>
-            <span class="navbar-title">校园图片墙</span>
-        </a>
-        <div class="navbar-links">
-            ${links.map(l =>
-                `<a href="${l.href}" class="navbar-link ${l.key === activePage ? 'active' : ''}">${l.text}</a>`
-            ).join('')}
-        </div>
-        <div class="navbar-search">
-            <input type="text" id="navbarSearchInput" placeholder="搜索照片 / 图集..." />
-            <button type="button" id="navbarSearchBtn" title="搜索">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.34-4.34"></path>
-                </svg>
-            </button>
-        </div>
-    `;
-    document.body.prepend(nav);
-
-    // 搜索：跳转照片墙并携带关键词
-    const input = nav.querySelector('#navbarSearchInput');
-    const doSearch = () => {
-        const kw = input.value.trim();
-        sessionStorage.setItem('wall_kw', kw);
-        window.location.href = 'wall.html';
-    };
-    nav.querySelector('#navbarSearchBtn').addEventListener('click', doSearch);
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') doSearch();
-    });
-}
-
-// ========== 加载全部图集数据 ==========
-// 返回数组，每项: { folder, data, card, categories, categoryColors, date, title, intro, cover }
+/* ========== 加载全部图集数据 ==========
+   返回数组，每项: { folder, data, card, cards, categories,
+                    categoryColors, date, title, intro, cover } */
 async function fetchAllPhotos() {
     const r = await fetch(`${DATA_PATH}/folders.json`);
     if (!r.ok) throw new Error('folders.json 加载失败（请确认通过本地服务器访问）');
@@ -133,7 +92,9 @@ async function fetchAllPhotos() {
     return photos;
 }
 
-// ========== 创建照片卡片（返回 DOM 元素） ==========
+/* ========== 创建照片卡片（返回 DOM 元素） ==========
+   原项目的 createPhotoCard 逻辑保持不变，
+   详情跳转统一指向 article.html?id=<folder> */
 function createPhotoCard(photo, options) {
     const opts = options || {};
     const cat = photo.categories[0] || '其他';
@@ -141,7 +102,7 @@ function createPhotoCard(photo, options) {
 
     const card = document.createElement('a');
     card.className = 'photo-card';
-    card.href = `detail.html?id=${encodeURIComponent(photo.folder)}`;
+    card.href = `article.html?id=${encodeURIComponent(photo.folder)}`;
 
     const imgSrc = photo.cover
         ? `${DATA_PATH}/${photo.folder}/${photo.cover}`
@@ -163,4 +124,20 @@ function createPhotoCard(photo, options) {
         </div>
     `;
     return card;
+}
+
+/* ========== 用 skeleton-card 组件渲染卡片 ==========
+   供首页 / 分类页 / 详情页等复用，保证组件封装不被破坏 */
+function createSkeletonCard(photo) {
+    const sk = document.createElement('skeleton-card');
+    sk.setAttribute('image', `${DATA_PATH}/${photo.folder}/${photo.cover}`);
+    sk.setAttribute('title', photo.title);
+    sk.setAttribute('intro', photo.intro);
+    sk.setAttribute('article-id', photo.folder);
+    sk.setAttribute('base-path', '..');
+    sk.setAttribute('categories', JSON.stringify(photo.categories));
+    if (photo.categoryColors && photo.categoryColors.length > 0) {
+        sk.setAttribute('category-colors', JSON.stringify(photo.categoryColors));
+    }
+    return sk;
 }

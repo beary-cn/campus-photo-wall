@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../components/mc-navbar.js"></script>
+    <link rel="stylesheet" href="../../css/style.css">
+    <title>图集详情 - 校园照片墙</title>
+    <style>
+        .article-container {
+            background: #fff;
+            border-radius: var(--radius-md);
+            padding: 32px 40px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .article-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 18px;
+            font-size: 13px;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+            padding-bottom: 18px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 22px;
+        }
+
+        .article-intro {
+            color: #555;
+            font-size: 15px;
+            margin-bottom: 24px;
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            border-left: 3px solid var(--accent-color);
+        }
+
+        /* 相册网格 */
+        .album-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .album-item {
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            cursor: zoom-in;
+            background: #e8eaed;
+            aspect-ratio: 4 / 3;
+            position: relative;
+        }
+
+        .album-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .album-item:hover img { transform: scale(1.05); }
+
+        .album-item .album-cap {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            padding: 20px 10px 8px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.6));
+            color: #fff;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+        .album-item:hover .album-cap { opacity: 1; }
+
+        .article-content { margin-top: 16px; }
+        .article-content h2 { font-size: 20px; color: #222; margin: 28px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--accent-color); }
+        .article-content h3 { font-size: 17px; color: #333; margin: 20px 0 10px; }
+        .article-content p { margin: 10px 0; color: #444; }
+        .article-content img { max-width: 100%; border-radius: 8px; margin: 14px 0; }
+        .article-content ul, .article-content ol { margin: 10px 0 10px 24px; }
+        .article-content li { margin: 5px 0; }
+
+        @media (max-width: 768px) {
+            .article-container { padding: 20px 24px; }
+            .article-title { font-size: 22px; }
+            .album-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <mc-navbar icon-type="grass" icon-color="#4a90d9" search-placeholder="搜索照片 / 图集..."></mc-navbar>
+
+    <div class="page-wrapper">
+        <div class="main-container">
+            <div class="back-btn" onclick="window.history.back()">← 返回</div>
+
+            <div class="article-container" id="articleBox">
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>正在加载图集...</p>
+                </div>
+            </div>
+
+            <div class="related-section" id="relatedSection" style="display:none; margin-top: 24px;">
+                <div class="cards-grid" id="relatedGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 大图预览模态框 -->
+    <div class="modal-overlay" id="imageModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">✕</button>
+            <img class="modal-image" id="modalImage" src="" alt="">
+            <div class="modal-info">
+                <div class="modal-title" id="modalTitle"></div>
+                <div class="modal-meta" id="modalMeta"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/app.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const albumId = params.get('id');
+        const basePath = params.get('path') || '../data';
+
+        document.addEventListener('DOMContentLoaded', loadAlbum);
+
+        async function loadAlbum() {
+            const box = document.getElementById('articleBox');
+            if (!albumId) {
+                box.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>缺少图集 ID</h3></div>`;
+                return;
+            }
+
+            let data;
+            try {
+                const r = await fetch(`${basePath}/${albumId}/${albumId}.json`);
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                data = await r.json();
+            } catch (e) {
+                box.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>加载失败</h3><p>${escapeHtml(e.message)}</p></div>`;
+                return;
+            }
+
+            renderAlbum(data);
+            loadRelated(data);
+        }
+
+        function renderAlbum(data) {
+            const cards = data.cards || [];
+            const cats = data.categories || [data.category || '其他'];
+            const colors = data.categoryColors || cats.map(getCategoryColor);
+            const first = cards[0] || {};
+
+            // 更新文档标题
+            document.title = `${data.title || first.title || albumId} - 校园照片墙`;
+
+            const tagsHtml = cats.map((c, i) =>
+                `<span class="detail-tag" style="background:${colors[i] || getCategoryColor(c)};">${escapeHtml(c)}</span>`
+            ).join('');
+
+            const metaHtml = [
+                data.photographer || first.photographer ? `📷 ${escapeHtml(data.photographer || first.photographer)}` : '',
+                data.date || first.date ? `📅 ${escapeHtml(data.date || first.date)}` : '',
+                data.location || first.location ? `📍 ${escapeHtml(data.location || first.location)}` : '',
+                cards.length > 0 ? `🖼️ ${cards.length} 张照片` : ''
+            ].filter(Boolean).join('</span><span style="margin:0 8px;color:#ddd;">|</span><span>');
+
+            const albumHtml = cards.length > 0 ? `
+                <div class="album-grid" id="albumGrid">
+                    ${cards.map((c, i) => `
+                        <div class="album-item" data-src="${escapeHtml(c.image)}">
+                            <img loading="lazy" src="${basePath}/${albumId}/${escapeHtml(c.image)}" alt="${escapeHtml(c.title)}"
+                                 onerror="this.onerror=null;this.src=window.__PH__">
+                            <div class="album-cap">${escapeHtml(c.title)}${c.date ? ' · ' + escapeHtml(c.date) : ''}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '';
+
+            document.getElementById('articleBox').innerHTML = `
+                <h1 class="article-title">${escapeHtml(data.title || first.title || albumId)}</h1>
+                <div class="detail-tags">${tagsHtml}</div>
+                <div class="article-meta"><span>${metaHtml}</span></div>
+                ${(data.intro || first.intro) ? `<div class="article-intro">${escapeHtml(data.intro || first.intro)}</div>` : ''}
+                ${albumHtml}
+                ${data.content ? `<div class="article-content">${data.content}</div>` : ''}
+            `;
+
+            // 相册点击放大
+            document.querySelectorAll('.album-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    openModal(`${basePath}/${albumId}/${item.dataset.src}`, item.querySelector('.album-cap').textContent);
+                });
+            });
+        }
+
+        // 相关图集（同分类，排除自己，最多 4 个）
+        async function loadRelated(data) {
+            const cats = data.categories || [data.category || '其他'];
+            let all;
+            try { all = await fetchAllPhotos(); } catch (e) { return; }
+
+            const related = all.filter(p =>
+                p.folder !== albumId && p.categories.some(c => cats.includes(c))
+            ).slice(0, 4);
+
+            if (related.length === 0) return;
+
+            document.getElementById('relatedSection').style.display = 'block';
+            const grid = document.getElementById('relatedGrid');
+            related.forEach(p => grid.appendChild(createPhotoCard(p, { showIntro: false })));
+        }
+
+        // 模态框
+        function openModal(src, title) {
+            const modal = document.getElementById('imageModal');
+            const img = document.getElementById('modalImage');
+            img.onerror = () => { img.onerror = null; img.src = window.__PH__; };
+            img.src = src;
+            document.getElementById('modalTitle').textContent = title || '';
+            document.getElementById('modalMeta').textContent = '';
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('modalClose').addEventListener('click', closeModal);
+        document.getElementById('imageModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+    </script>
+</body>
+</html>

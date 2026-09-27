@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 校园照片墙</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css">
+    <style>
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1a3a5c 0%, #1e4d7b 50%, #2a6ba0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .bg-pattern {
+            position: fixed; inset: 0; opacity: 0.03;
+            background-image: radial-gradient(circle at 25% 25%, #fff 1px, transparent 1px);
+            background-size: 60px 60px; pointer-events: none;
+        }
+
+        .login-card {
+            width: 100%; max-width: 420px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px; padding: 48px 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative; z-index: 1;
+        }
+
+        .login-header { text-align: center; margin-bottom: 32px; }
+
+        .login-logo {
+            width: 64px; height: 64px; margin: 0 auto 16px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #4a90d9, #6ab0f0);
+            display: flex; align-items: center; justify-content: center; font-size: 32px;
+        }
+
+        .login-title { font-size: 24px; font-weight: 700; color: #18191c; margin-bottom: 8px; }
+        .login-subtitle { font-size: 14px; color: var(--text-muted); }
+
+        .input-group { margin-bottom: 20px; }
+        .input-label { display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 8px; }
+
+        .input-field {
+            width: 100%; height: 48px; padding: 0 16px;
+            border: 2px solid var(--border-color); border-radius: 12px;
+            font-size: 15px; outline: none; transition: var(--transition);
+            font-family: inherit; background: #fafafa;
+        }
+        .input-field:focus { border-color: var(--accent-color); background: #fff; box-shadow: 0 0 0 4px var(--accent-light); }
+        .input-field::placeholder { color: #b3b3b3; }
+
+        .login-btn {
+            width: 100%; height: 48px; border: none; border-radius: 12px;
+            background: linear-gradient(135deg, #4a90d9, #6ab0f0);
+            color: #fff; font-size: 16px; font-weight: 600; cursor: pointer;
+            transition: var(--transition); font-family: inherit; margin-top: 8px;
+        }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(74, 144, 217, 0.3); }
+        .login-btn:active { transform: translateY(0); }
+        .login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .register-link { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text-muted); }
+        .register-link a { color: var(--accent-color); font-weight: 600; text-decoration: none; }
+        .register-link a:hover { text-decoration: underline; }
+
+        .error-msg {
+            background: #fdeaea; color: #e74c3c; padding: 12px 16px;
+            border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none;
+        }
+        .error-msg.show { display: block; }
+
+        .back-home {
+            position: fixed; top: 24px; left: 24px; display: flex; align-items: center; gap: 8px;
+            padding: 10px 18px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+            border-radius: 999px; text-decoration: none; color: #fff; font-size: 14px; font-weight: 500;
+            transition: var(--transition); border: 1px solid rgba(255, 255, 255, 0.2); z-index: 100;
+        }
+        .back-home:hover { background: rgba(255, 255, 255, 0.2); }
+        .back-home .material-icons { font-size: 18px; }
+
+        @media (max-width: 480px) {
+            .login-card { padding: 32px 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <a href="index.html" class="back-home">
+        <span class="material-icons">arrow_back</span>
+        <span>返回主页</span>
+    </a>
+
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-logo">🎓</div>
+            <h1 class="login-title">欢迎回来</h1>
+            <p class="login-subtitle">登录以收藏喜爱的校园影像</p>
+        </div>
+
+        <div class="error-msg" id="errorMsg"></div>
+
+        <div class="input-group">
+            <label class="input-label">用户名</label>
+            <input type="text" class="input-field" id="username" placeholder="请输入用户名" maxlength="20">
+        </div>
+
+        <div class="input-group">
+            <label class="input-label">密码</label>
+            <input type="password" class="input-field" id="password" placeholder="请输入密码" maxlength="20">
+        </div>
+
+        <button class="login-btn" id="loginBtn" onclick="handleLogin()">登录</button>
+
+        <div class="register-link">
+            还没有账号？<a href="#" onclick="handleRegister()">立即注册</a>
+        </div>
+    </div>
+
+    <script>
+        // 已登录则直接返回
+        const userInfo = JSON.parse(localStorage.getItem('cpw_user') || 'null');
+        if (userInfo && userInfo.isLoggedIn) {
+            const returnUrl = sessionStorage.getItem('login_return_url') || 'index.html';
+            sessionStorage.removeItem('login_return_url');
+            window.location.href = returnUrl;
+        }
+
+        if (document.referrer && !document.referrer.includes('login.html')) {
+            sessionStorage.setItem('login_return_url', document.referrer);
+        }
+
+        async function handleLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const loginBtn = document.getElementById('loginBtn');
+
+            if (!username || !password) {
+                errorMsg.textContent = '请填写用户名和密码';
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = '登录中...';
+
+            try {
+                const users = JSON.parse(localStorage.getItem('cpw_users') || '[]');
+                const user = users.find(u => u.name === username && u.password === password);
+
+                if (user) {
+                    localStorage.setItem('cpw_user', JSON.stringify({
+                        name: user.name,
+                        avatar: user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=b6e3f4`,
+                        isLoggedIn: true
+                    }));
+                    const returnUrl = sessionStorage.getItem('login_return_url') || 'index.html';
+                    sessionStorage.removeItem('login_return_url');
+                    window.location.href = returnUrl;
+                } else {
+                    errorMsg.textContent = '用户名或密码错误';
+                    errorMsg.classList.add('show');
+                }
+            } catch (err) {
+                errorMsg.textContent = '登录失败，请稍后重试';
+                errorMsg.classList.add('show');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = '登录';
+            }
+        }
+
+        async function handleRegister() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            if (!username || !password) {
+                errorMsg.textContent = '请填写用户名和密码以注册';
+                errorMsg.classList.add('show');
+                return;
+            }
+            if (password.length < 6) {
+                errorMsg.textContent = '密码至少需要 6 位';
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('cpw_users') || '[]');
+            if (users.find(u => u.name === username)) {
+                errorMsg.textContent = '用户名已存在';
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            users.push({
+                name: username,
+                password: password,
+                avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(username)}&backgroundColor=b6e3f4`,
+                createdAt: Date.now()
+            });
+
+            localStorage.setItem('cpw_users', JSON.stringify(users));
+            errorMsg.textContent = '注册成功！请登录';
+            errorMsg.style.background = '#e8f5e9';
+            errorMsg.style.color = '#2e7d32';
+            errorMsg.classList.add('show');
+            document.getElementById('password').value = '';
+        }
+
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+    </script>
+</body>
+</html>
