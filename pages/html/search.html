@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../components/mc-navbar.js"></script>
+    <script src="../../components/skeleton-card.js"></script>
+    <link rel="stylesheet" href="../../css/style.css">
+    <title>搜索结果 - 校园照片墙</title>
+</head>
+<body>
+    <mc-navbar icon-type="grass" icon-color="#4a90d9" search-placeholder="搜索照片 / 图集..."></mc-navbar>
+
+    <div class="page-wrapper">
+        <div class="main-container">
+            <div class="page-header">
+                <h1>🔍 搜索结果</h1>
+                <p id="searchKeyword"></p>
+            </div>
+
+            <div class="result-count" id="resultCount" style="font-size:13px;color:var(--text-muted);margin-bottom:12px;padding-left:4px;"></div>
+            <div class="cards-grid" id="resultGrid">
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>正在搜索...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const query = sessionStorage.getItem('search_query') || '';
+            const results = JSON.parse(sessionStorage.getItem('search_results') || '[]');
+
+            document.getElementById('searchKeyword').textContent = query ? `关键词：「${query}」` : '';
+
+            const grid = document.getElementById('resultGrid');
+            const count = document.getElementById('resultCount');
+
+            if (results.length === 0) {
+                count.innerHTML = `共 <strong>0</strong> 个结果`;
+                grid.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><h3>没有找到相关结果</h3><p>换个关键词试试</p></div>`;
+                return;
+            }
+
+            count.innerHTML = `共 <strong>${results.length}</strong> 个结果`;
+
+            results.forEach(item => {
+                const photo = {
+                    folder: item.folder,
+                    title: item.title,
+                    intro: item.intro,
+                    categories: [item.category],
+                    categoryColors: [],
+                    cover: item.image
+                };
+                grid.appendChild(createSkeletonCard(photo));
+            });
+        });
+    </script>
+</body>
+</html>

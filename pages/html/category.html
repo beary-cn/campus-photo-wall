@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../components/mc-navbar.js"></script>
+    <script src="../../components/skeleton-card.js"></script>
+    <link rel="stylesheet" href="../../css/style.css">
+    <title>分类浏览 - 校园照片墙</title>
+    <style>
+        .category-tabs-wrapper { margin-bottom: 20px; }
+        .category-section-panel { display: none; }
+        .category-section-panel.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .section-header-bar h2 { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+        .result-count { font-size: 13px; color: var(--text-muted); }
+        .result-count strong { color: var(--accent-color); }
+    </style>
+</head>
+<body>
+    <mc-navbar icon-type="grass" icon-color="#4a90d9" search-placeholder="搜索照片 / 图集..."></mc-navbar>
+
+    <div class="page-wrapper">
+        <div class="main-container">
+            <div class="page-header">
+                <h1>🗂️ 分类浏览</h1>
+                <p>按主题查看校园影像，支持分类切换与关键词搜索。</p>
+            </div>
+
+            <!-- 胶囊分类标签栏 -->
+            <div class="category-tabs-wrapper">
+                <ul class="category-tabs" id="category-tabs"></ul>
+            </div>
+
+            <!-- 各分类面板（由 JS 动态生成） -->
+            <div id="panels"></div>
+        </div>
+    </div>
+
+    <script src="../../js/app.js"></script>
+    <script>
+        const PAGE_SIZE = 12;
+        let allPhotos = [];
+        const filteredCards = {};
+        const currentPage = {};
+        const searchKeywords = {};
+        let currentCategory = 'all';
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        async function init() {
+            // URL 参数决定初始分类
+            const params = new URLSearchParams(window.location.search);
+            const initCat = params.get('cat');
+            if (initCat) currentCategory = initCat;
+
+            try {
+                allPhotos = await fetchAllPhotos();
+            } catch (e) {
+                document.getElementById('panels').innerHTML =
+                    `<div class="empty-state"><div class="icon">⚠️</div><h3>加载失败</h3><p>${escapeHtml(e.message)}</p></div>`;
+                return;
+            }
+
+            buildTabs();
+            buildPanels();
+            setupEvents();
+
+            // 恢复导航栏搜索关键词
+            const savedKw = sessionStorage.getItem('wall_kw');
+            if (savedKw !== null) {
+                sessionStorage.removeItem('wall_kw');
+                searchKeywords[currentCategory] = savedKw;
+                const input = document.getElementById(`search-${currentCategory}`);
+                if (input) input.value = savedKw;
+            }
+
+            applySearch(currentCategory);
+        }
+
+        // 构建标签栏
+        function buildTabs() {
+            const tabs = document.getElementById('category-tabs');
+            const cats = ['all', ...CATEGORIES.map(c => c.key)];
+            tabs.innerHTML = cats.map(c => {
+                const isAll = c === 'all';
+                const label = isAll ? '全部' : `${CATEGORIES.find(x => x.key === c).icon} ${c}`;
+                const count = isAll ? allPhotos.length : allPhotos.filter(p => p.categories.includes(c)).length;
+                return `<li><button type="button" data-category="${c}" class="${c === currentCategory ? 'active' : ''}">${label} <span class="count">${count}</span></button></li>`;
+            }).join('');
+        }
+
+        // 为每个分类构建一个面板
+        function buildPanels() {
+            const container = document.getElementById('panels');
+            const cats = ['all', ...CATEGORIES.map(c => c.key)];
+
+            container.innerHTML = cats.map(c => {
+                const isAll = c === 'all';
+                return `
+                <div class="category-section-panel ${c === currentCategory ? 'active' : ''}" id="section-${c}">
+                    <div class="section-header-bar">
+                        <h2>${isAll ? '📚 全部图集' : CATEGORIES.find(x => x.key === c).icon + ' ' + c}</h2>
+                        <div class="search-wrapper">
+                            <input type="text" id="search-${c}" placeholder="在此分类下搜索...">
+                            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.34-4.34"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="result-count" id="count-${c}">共 <strong>0</strong> 个结果</div>
+                    <div class="cards-grid" id="grid-${c}">
+                        <div class="loading-state">
+                            <div class="loading-spinner"></div>
+                            <p>正在加载...</p>
+                        </div>
+                    </div>
+                    <div class="pagination" id="pagination-${c}"></div>
+                </div>`;
+            }).join('');
+        }
+
+        // 搜索/筛选
+        function applySearch(category) {
+            const kw = (searchKeywords[category] || '').toLowerCase();
+            let pool = allPhotos;
+            if (category !== 'all') pool = pool.filter(p => p.categories.includes(category));
+
+            filteredCards[category] = pool.filter(p => {
+                if (!kw) return true;
+                const text = (p.title + ' ' + p.intro).toLowerCase();
+                return text.includes(kw);
+            });
+
+            currentPage[category] = 1;
+            renderPanel(category);
+        }
+
+        // 渲染单个面板
+        function renderPanel(category) {
+            const grid = document.getElementById(`grid-${category}`);
+            const cards = filteredCards[category];
+            const countEl = document.getElementById(`count-${category}`);
+
+            countEl.innerHTML = `共 <strong>${cards.length}</strong> 个结果`;
+
+            const loading = grid.querySelector('.loading-state');
+            if (loading) loading.remove();
+
+            if (cards.length === 0) {
+                grid.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><h3>没有找到相关照片</h3><p>换个关键词试试</p></div>`;
+                document.getElementById(`pagination-${category}`).innerHTML = '';
+                return;
+            }
+
+            const page = currentPage[category];
+            const totalPages = Math.ceil(cards.length / PAGE_SIZE);
+            const start = (page - 1) * PAGE_SIZE;
+            const end = start + PAGE_SIZE;
+
+            grid.innerHTML = '';
+            cards.slice(start, end).forEach(p => grid.appendChild(createSkeletonCard(p)));
+
+            renderPagination(category, totalPages);
+        }
+
+        // 分页
+        function renderPagination(category, totalPages) {
+            const pag = document.getElementById(`pagination-${category}`);
+            const page = currentPage[category];
+            if (totalPages <= 1) { pag.innerHTML = ''; return; }
+
+            let html = '';
+            html += `<button type="button" ${page === 1 ? 'disabled' : ''} data-cat="${category}" data-p="${page - 1}">‹</button>`;
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= page - 1 && i <= page + 1)) {
+                    html += `<button type="button" class="${i === page ? 'active' : ''}" data-cat="${category}" data-p="${i}">${i}</button>`;
+                } else if (i === page - 2 || i === page + 2) {
+                    html += `<button type="button" disabled>...</button>`;
+                }
+            }
+            html += `<button type="button" ${page === totalPages ? 'disabled' : ''} data-cat="${category}" data-p="${page + 1}">›</button>`;
+            pag.innerHTML = html;
+        }
+
+        function changePage(category, page) {
+            currentPage[category] = page;
+            renderPanel(category);
+            document.getElementById(`section-${category}`).scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // 事件
+        function setupEvents() {
+            const nav = document.getElementById('category-tabs');
+            nav.addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-category]');
+                if (!btn) return;
+                nav.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const cat = btn.dataset.category;
+                currentCategory = cat;
+                document.querySelectorAll('.category-section-panel').forEach(s => s.classList.remove('active'));
+                document.getElementById(`section-${cat}`).classList.add('active');
+                if (!filteredCards[cat]) applySearch(cat);
+                else renderPanel(cat);
+            });
+
+            ['all', ...CATEGORIES.map(c => c.key)].forEach(cat => {
+                const input = document.getElementById(`search-${cat}`);
+                let timer;
+                input.addEventListener('input', (e) => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        searchKeywords[cat] = e.target.value.trim();
+                        applySearch(cat);
+                    }, 300);
+                });
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        clearTimeout(timer);
+                        searchKeywords[cat] = e.target.value.trim();
+                        applySearch(cat);
+                    }
+                });
+            });
+
+            document.getElementById('panels').addEventListener('click', (e) => {
+                const b = e.target.closest('button[data-p]');
+                if (!b) return;
+                changePage(b.dataset.cat, parseInt(b.dataset.p));
+            });
+
+            // 导航栏搜索
+            const navbar = document.querySelector('mc-navbar');
+            if (navbar) {
+                navbar.addEventListener('search', (e) => {
+                    const q = e.detail.query;
+                    if (q) {
+                        const input = document.getElementById(`search-${currentCategory}`);
+                        if (input) {
+                            input.value = q;
+                            searchKeywords[currentCategory] = q;
+                            applySearch(currentCategory);
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

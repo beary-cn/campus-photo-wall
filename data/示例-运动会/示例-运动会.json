@@ -1,0 +1,16 @@
+{
+  "title": "校园运动会",
+  "category": "体育竞技",
+  "categories": ["体育竞技"],
+  "categoryColors": ["#e74c3c"],
+  "date": "2026-04-15",
+  "photographer": "体育部",
+  "location": "学校操场",
+  "intro": "拼搏与欢呼交织的赛场时刻。",
+  "cards": [
+    { "title": "百米冲刺", "intro": "终点线上的全力一搏", "image": "1.jpg", "date": "2026-04-15" },
+    { "title": "接力交接", "intro": "默契的交接棒瞬间", "image": "2.jpg", "date": "2026-04-15" },
+    { "title": "颁奖时刻", "intro": "领奖台上的灿烂笑容", "image": "3.jpg", "date": "2026-04-15" }
+  ],
+  "content": "<h2>运动精神</h2><p>更快、更高、更强，永不言弃。</p>"
+}
