@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <title>校园图片墙 - 照片墙</title>
+    <style>
+        /* ========== 左右布局 ========== */
+        .wall-layout {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        /* 左侧分类栏 */
+        .sidebar {
+            width: 220px;
+            flex-shrink: 0;
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            position: sticky;
+            top: 80px;
+        }
+
+        .sidebar-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #9499a0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 10px 12px;
+        }
+
+        .cat-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 8px;
+            background: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            text-align: left;
+        }
+
+        .cat-link:hover { background: #f0f0f0; }
+        .cat-link.active { background: #4a90d9; color: #fff; }
+        .cat-link.active .cat-count { background: rgba(255,255,255,0.25); color: #fff; }
+
+        .cat-count {
+            margin-left: auto;
+            font-size: 12px;
+            color: #9499a0;
+            background: #f4f5f7;
+            padding: 1px 9px;
+            border-radius: 999px;
+        }
+
+        /* 主内容区 */
+        .wall-main { flex: 1; min-width: 0; }
+
+        /* 工具栏 */
+        .toolbar {
+            background: #fff;
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar .result-info { font-size: 14px; color: #61666d; margin-right: auto; }
+        .toolbar .result-info strong { color: #4a90d9; }
+
+        .wall-search {
+            position: relative;
+            width: 240px;
+            max-width: 100%;
+        }
+
+        .wall-search input {
+            width: 100%;
+            height: 38px;
+            padding: 0 36px 0 14px;
+            border: 1.5px solid #e3e5e7;
+            border-radius: 999px;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s;
+            background: #f4f5f7;
+            font-family: inherit;
+        }
+
+        .wall-search input:focus {
+            border-color: #4a90d9;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(74,144,217,0.12);
+        }
+
+        .wall-search svg {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9499a0;
+            pointer-events: none;
+        }
+
+        .sort-select {
+            height: 38px;
+            padding: 0 32px 0 14px;
+            border: 1.5px solid #e3e5e7;
+            border-radius: 999px;
+            font-size: 13px;
+            background: #fff;
+            cursor: pointer;
+            outline: none;
+            font-family: inherit;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239499a0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        /* ========== 瀑布流（CSS 多栏） ========== */
+        .masonry-grid {
+            column-count: 4;
+            column-gap: 20px;
+        }
+
+        .masonry-grid .photo-card {
+            break-inside: avoid;
+            margin-bottom: 20px;
+            display: inline-flex;   /* 让卡片正确分栏 */
+            width: 100%;
+            vertical-align: top;
+        }
+
+        /* 瀑布流里图片高度按原图比例，去掉固定比例 */
+        .masonry-grid .photo-card-imgwrap { aspect-ratio: auto; }
+
+        /* 悬停显示"查看大图"按钮 */
+        .photo-card-imgwrap .quick-view {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.92);
+            cursor: pointer;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.25s, transform 0.25s;
+            transform: translateY(4px);
+        }
+
+        .photo-card:hover .quick-view { opacity: 1; transform: translateY(0); }
+        .photo-card-imgwrap .quick-view:hover { transform: scale(1.1); }
+
+        @media (max-width: 1200px) { .masonry-grid { column-count: 3; } }
+        @media (max-width: 992px) {
+            .wall-layout { flex-direction: column; }
+            .sidebar {
+                width: 100%;
+                position: static;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                align-items: center;
+            }
+            .sidebar-title { width: 100%; }
+            .masonry-grid { column-count: 2; column-gap: 14px; }
+            .masonry-grid .photo-card { margin-bottom: 14px; }
+        }
+        @media (max-width: 560px) { .masonry-grid { column-count: 1; } }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="main-container">
+            <div class="page-header">
+                <h1>📷 照片墙</h1>
+                <p>按分类浏览全部校园照片，点击卡片查看图集详情，悬停可快速预览大图。</p>
+            </div>
+
+            <div class="wall-layout">
+                <!-- 左侧分类栏 -->
+                <aside class="sidebar" id="sidebar">
+                    <div class="sidebar-title">分类</div>
+                </aside>
+
+                <!-- 主内容区 -->
+                <main class="wall-main">
+                    <div class="toolbar">
+                        <span class="result-info" id="resultInfo">加载中...</span>
+                        <div class="wall-search">
+                            <input type="text" id="searchInput" placeholder="搜索标题 / 描述...">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.34-4.34"></path>
+                            </svg>
+                        </div>
+                        <select class="sort-select" id="sortSelect">
+                            <option value="newest">最新发布</option>
+                            <option value="oldest">最旧发布</option>
+                            <option value="name">名称排序</option>
+                        </select>
+                    </div>
+
+                    <div class="masonry-grid" id="masonryGrid">
+                        <div class="loading-state">
+                            <div class="loading-spinner"></div>
+                            <p>正在加载照片...</p>
+                        </div>
+                    </div>
+
+                    <div class="load-more" id="loadMore" style="display:none;">
+                        <button class="load-more-btn" id="loadMoreBtn">加载更多</button>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- 大图预览模态框 -->
+    <div class="modal-overlay" id="imageModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">✕</button>
+            <img class="modal-image" id="modalImage" src="" alt="">
+            <div class="modal-info">
+                <div class="modal-title" id="modalTitle"></div>
+                <div class="modal-meta" id="modalMeta"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        renderNavbar('wall');
+
+        const PAGE_SIZE = 20;
+        let allPhotos = [];
+        let filtered = [];
+        let currentPage = 1;
+        let currentCat = 'all';
+        let keyword = '';
+        let currentSort = 'newest';
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        async function init() {
+            // 读取 URL 参数（从首页分类"查看更多"跳转过来）
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('cat')) currentCat = params.get('cat');
+
+            // 读取导航栏搜索关键词
+            const savedKw = sessionStorage.getItem('wall_kw');
+            if (savedKw !== null) {
+                sessionStorage.removeItem('wall_kw');
+                keyword = savedKw;
+                document.getElementById('searchInput').value = keyword;
+            }
+
+            const grid = document.getElementById('masonryGrid');
+            try {
+                allPhotos = await fetchAllPhotos();
+            } catch (e) {
+                grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>加载失败</h3><p>${escapeHtml(e.message)}</p></div>`;
+                return;
+            }
+
+            buildSidebar();
+            setupEvents();
+            applyFilter();
+        }
+
+        // ========== 左侧分类栏 ==========
+        function buildSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const counts = { 'all': allPhotos.length };
+            CATEGORIES.forEach(c => { counts[c.key] = 0; });
+            allPhotos.forEach(p => {
+                const key = CATEGORIES.find(c => p.categories.includes(c.key)) ? p.categories.find(k => CATEGORIES.some(c => c.key === k)) : '其他';
+                if (counts[key] !== undefined) counts[key]++;
+            });
+
+            let html = `<div class="sidebar-title">分类</div>
+                <button class="cat-link" data-cat="all">📁 全部 <span class="cat-count">${counts['all']}</span></button>`;
+            CATEGORIES.forEach(c => {
+                html += `<button class="cat-link" data-cat="${c.key}">${c.icon} ${c.key} <span class="cat-count">${counts[c.key] || 0}</span></button>`;
+            });
+            sidebar.innerHTML = html;
+
+            sidebar.querySelectorAll('.cat-link').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.cat === currentCat);
+                btn.addEventListener('click', () => {
+                    currentCat = btn.dataset.cat;
+                    sidebar.querySelectorAll('.cat-link').forEach(b => b.classList.toggle('active', b === btn));
+                    applyFilter();
+                });
+            });
+        }
+
+        // ========== 筛选 + 排序 ==========
+        function applyFilter() {
+            filtered = allPhotos.filter(p => {
+                if (currentCat !== 'all' && !p.categories.includes(currentCat)) return false;
+                if (keyword) {
+                    const kw = keyword.toLowerCase();
+                    const text = (p.title + ' ' + p.intro).toLowerCase();
+                    if (!text.includes(kw)) return false;
+                }
+                return true;
+            });
+
+            if (currentSort === 'newest') {
+                filtered.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+            } else if (currentSort === 'oldest') {
+                filtered.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+            } else {
+                filtered.sort((a, b) => a.title.localeCompare(b.title, 'zh'));
+            }
+
+            currentPage = 1;
+            render();
+        }
+
+        // ========== 渲染瀑布流 ==========
+        function render() {
+            const grid = document.getElementById('masonryGrid');
+            const loadMore = document.getElementById('loadMore');
+            const info = document.getElementById('resultInfo');
+
+            info.innerHTML = `共 <strong>${filtered.length}</strong> 个图集`;
+
+            const loading = grid.querySelector('.loading-state');
+            if (loading) loading.remove();
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><h3>没有找到相关照片</h3><p>换个关键词或分类试试</p></div>`;
+                loadMore.style.display = 'none';
+                return;
+            }
+
+            const end = currentPage * PAGE_SIZE;
+            const items = filtered.slice(0, end);
+
+            grid.innerHTML = '';
+            items.forEach(p => {
+                const card = createPhotoCard(p, { showIntro: false });
+                // 追加"查看大图"快捷按钮（取封面图预览）
+                const wrap = card.querySelector('.photo-card-imgwrap');
+                const btn = document.createElement('button');
+                btn.className = 'quick-view';
+                btn.title = '查看大图';
+                btn.textContent = '🔍';
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openModal(`${DATA_PATH}/${p.folder}/${p.cover}`, p.title, p.date, p.categories[0]);
+                });
+                wrap.appendChild(btn);
+                grid.appendChild(card);
+            });
+
+            loadMore.style.display = end >= filtered.length ? 'none' : 'block';
+        }
+
+        // ========== 模态框 ==========
+        function openModal(src, title, date, cat) {
+            const modal = document.getElementById('imageModal');
+            const img = document.getElementById('modalImage');
+            img.onerror = () => { img.onerror = null; img.src = window.__PH__; };
+            img.src = src;
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMeta').textContent =
+                [cat, date ? `📅 ${date}` : ''].filter(Boolean).join(' · ');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // ========== 事件 ==========
+        function setupEvents() {
+            const searchInput = document.getElementById('searchInput');
+            let timer;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    keyword = e.target.value.trim();
+                    applyFilter();
+                }, 300);
+            });
+
+            document.getElementById('sortSelect').addEventListener('change', (e) => {
+                currentSort = e.target.value;
+                applyFilter();
+            });
+
+            document.getElementById('loadMoreBtn').addEventListener('click', () => {
+                currentPage++;
+                render();
+            });
+
+            document.getElementById('modalClose').addEventListener('click', closeModal);
+            document.getElementById('imageModal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) closeModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeModal();
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <title>校园图片墙 - 首页</title>
+    <style>
+        /* ========== 轮播图 + 特色卡片 ========== */
+        .hero-section {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .carousel-wrapper {
+            border-radius: 16px;
+            overflow: hidden;
+            height: 380px;
+            position: relative;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .carousel-slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            background-size: cover;
+            background-position: center;
+        }
+        .carousel-slide.active { opacity: 1; }
+
+        .carousel-caption {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.65));
+            color: #fff;
+            padding: 2rem 1.5rem 1.2rem;
+        }
+        .carousel-caption h2 { font-size: 20px; margin-bottom: 4px; }
+        .carousel-caption p { font-size: 13px; opacity: 0.85; }
+
+        .carousel-dots {
+            position: absolute;
+            bottom: 1rem; right: 1rem;
+            display: flex; gap: 0.5rem;
+        }
+        .carousel-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .carousel-dot.active { background: #fff; width: 26px; border-radius: 5px; }
+
+        /* 右侧 2×2 特色图集 */
+        .featured-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 1rem;
+        }
+        .featured-grid .photo-card { height: 100%; }
+        .featured-grid .photo-card-imgwrap { aspect-ratio: auto; flex: 1; }
+        .featured-grid .photo-card-intro { display: none; }
+
+        /* ========== 分类模块 ========== */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .view-more {
+            font-size: 0.9rem;
+            color: #4a90d9;
+            font-weight: 500;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .view-more:hover { background: rgba(74,144,217,0.1); }
+
+        .category-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        /* 固定两行显示，超出隐藏 */
+        .two-row-grid {
+            max-height: 590px;
+            overflow: hidden;
+        }
+
+        @media (max-width: 900px) {
+            .hero-section { grid-template-columns: 1fr; }
+            .carousel-wrapper { height: 240px; }
+        }
+        @media (max-width: 600px) {
+            .featured-grid { grid-template-columns: 1fr; grid-template-rows: none; }
+            .featured-grid .photo-card-imgwrap { aspect-ratio: 16/9; }
+            .two-row-grid { max-height: 500px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="main-container">
+            <!-- 轮播 + 特色 -->
+            <section class="hero-section">
+                <div class="carousel-wrapper">
+                    <div class="carousel-slide active" style="background-image:linear-gradient(135deg,#667eea,#764ba2)">
+                        <div class="carousel-caption">
+                            <h2>📷 校园图片墙</h2>
+                            <p>记录校园里的每一个精彩瞬间</p>
+                        </div>
+                    </div>
+                    <div class="carousel-slide" style="background-image:linear-gradient(135deg,#f093fb,#f5576c)">
+                        <div class="carousel-caption">
+                            <h2>🌸 校园风光</h2>
+                            <p>四季流转，风景如画</p>
+                        </div>
+                    </div>
+                    <div class="carousel-slide" style="background-image:linear-gradient(135deg,#4facfe,#00f2fe)">
+                        <div class="carousel-caption">
+                            <h2>🏃 青春活动</h2>
+                            <p>社团、运动会、毕业典礼……</p>
+                        </div>
+                    </div>
+                    <div class="carousel-dots">
+                        <span class="carousel-dot active" data-index="0"></span>
+                        <span class="carousel-dot" data-index="1"></span>
+                        <span class="carousel-dot" data-index="2"></span>
+                    </div>
+                </div>
+                <div class="featured-grid" id="featured-grid"></div>
+            </section>
+
+            <!-- 分类模块（由 JS 生成） -->
+            <div id="category-sections"></div>
+
+            <!-- 全部图集 -->
+            <section class="category-section">
+                <div class="section-header">
+                    <h2 class="section-title">🗂️ 全部图集</h2>
+                </div>
+                <div class="cards-grid" id="all-grid">
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>正在加载...</p>
+                    </div>
+                </div>
+                <div class="load-more" id="load-more">
+                    <button class="load-more-btn" id="load-more-btn">加载更多</button>
+                </div>
+                <div class="all-loaded" id="all-loaded" style="display:none;">已经到底了 ~</div>
+            </section>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        renderNavbar('index');
+
+        const PAGE_SIZE = 12;
+        let allPhotos = [];
+        let currentIndex = 0;
+
+        // ========== 轮播图 ==========
+        const slides = document.querySelectorAll('.carousel-slide');
+        const dots = document.querySelectorAll('.carousel-dot');
+        let currentSlide = 0;
+        function showSlide(i) {
+            slides.forEach((s, idx) => s.classList.toggle('active', idx === i));
+            dots.forEach((d, idx) => d.classList.toggle('active', idx === i));
+            currentSlide = i;
+        }
+        dots.forEach(d => d.addEventListener('click', () => showSlide(parseInt(d.dataset.index, 10))));
+        setInterval(() => showSlide((currentSlide + 1) % slides.length), 5000);
+
+        // ========== 加载数据 ==========
+        document.addEventListener('DOMContentLoaded', async () => {
+            const featuredGrid = document.getElementById('featured-grid');
+            const categorySections = document.getElementById('category-sections');
+            const allGrid = document.getElementById('all-grid');
+
+            try {
+                allPhotos = await fetchAllPhotos();
+            } catch (e) {
+                allGrid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>加载失败</h3><p>${escapeHtml(e.message)}</p></div>`;
+                return;
+            }
+
+            if (allPhotos.length === 0) {
+                allGrid.innerHTML = `<div class="empty-state"><div class="icon">📷</div><h3>还没有照片</h3><p>请按 README 说明在 data 目录中添加图集</p></div>`;
+                return;
+            }
+
+            // 右侧 2×2 特色图集
+            allPhotos.slice(0, 4).forEach(p => {
+                featuredGrid.appendChild(createPhotoCard(p, { showCat: true }));
+            });
+
+            // 各分类模块（每个最多 8 个 = 两行）
+            CATEGORIES.forEach(catInfo => {
+                const list = allPhotos.filter(p => p.categories.includes(catInfo.key));
+                if (list.length === 0) return;
+
+                const section = document.createElement('section');
+                section.className = 'category-section';
+                section.innerHTML = `
+                    <div class="section-header">
+                        <h2 class="section-title">${catInfo.icon} ${catInfo.key}</h2>
+                        <a class="view-more" href="wall.html?cat=${encodeURIComponent(catInfo.key)}">查看更多 →</a>
+                    </div>
+                    <div class="cards-grid two-row-grid"></div>
+                `;
+                const grid = section.querySelector('.cards-grid');
+                list.slice(0, 8).forEach(p => grid.appendChild(createPhotoCard(p, { showIntro: false })));
+                categorySections.appendChild(section);
+            });
+
+            // 全部图集：分页加载
+            renderMore();
+            document.getElementById('load-more-btn').addEventListener('click', renderMore);
+        });
+
+        function renderMore() {
+            const allGrid = document.getElementById('all-grid');
+            const loadMore = document.getElementById('load-more');
+            const allLoaded = document.getElementById('all-loaded');
+
+            // 清掉初始 loading
+            const loading = allGrid.querySelector('.loading-state');
+            if (loading) loading.remove();
+
+            const batch = allPhotos.slice(currentIndex, currentIndex + PAGE_SIZE);
+            batch.forEach(p => allGrid.appendChild(createPhotoCard(p)));
+            currentIndex += batch.length;
+
+            if (currentIndex >= allPhotos.length) {
+                loadMore.style.display = 'none';
+                allLoaded.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
