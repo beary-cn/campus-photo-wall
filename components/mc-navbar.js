@@ -102,7 +102,7 @@ class McNavbar extends HTMLElement {
         const searchBg       = this.getAttr('search-bg', '#ffffff');
         const searchBorder   = this.getAttr('search-border', '#e3e8ee');
         const searchFocus    = this.getAttr('search-focus-color', '#2e7def');
-        const searchPlaceholder = this.getAttr('search-placeholder', '搜索照片 / 图集...');
+        const searchPlaceholder = this.getAttr('search-placeholder', '搜索活动照片...');
 
         const iconSrc = this.getAttribute('icon-src');
         const iconSvg = this.getIconSvg();
@@ -658,12 +658,12 @@ class McNavbar extends HTMLElement {
 
                     <ul class="nav-links">
                         <li><a href="index.html">主页</a></li>
-                        <li><a href="gallery.html">照片墙</a></li>
-                        <li><a href="category.html?cat=校园风光">校园风光</a></li>
-                        <li><a href="category.html?cat=课堂瞬间">课堂瞬间</a></li>
-                        <li><a href="category.html?cat=社团活动">社团活动</a></li>
-                        <li><a href="category.html?cat=体育竞技">体育竞技</a></li>
-                        <li><a href="category.html?cat=毕业季">毕业季</a></li>
+                        <li><a href="redstone-intro.html">活动介绍</a></li>
+                        <li><a href="mechanism.html">活动回顾</a></li>
+                        <li><a href="redstone-machines.html">精彩瞬间</a></li>
+                        <li><a href="building.html">校园风光</a></li>
+                        <li><a href="schematics.html">集体相册</a></li>
+                    </ul>
                 </div>
 
                 <div class="nav-right">
@@ -828,7 +828,7 @@ class McNavbar extends HTMLElement {
             // 多个结果，存储到 sessionStorage 并跳转搜索页面
             sessionStorage.setItem('search_query', query);
             sessionStorage.setItem('search_results', JSON.stringify(results));
-            window.location.href = 'search.html';
+            window.location.href = 'search-results.html';
         } else {
             alert('未找到相关结果');
         }

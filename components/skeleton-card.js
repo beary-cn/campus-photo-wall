@@ -1,12 +1,12 @@
 // ==================== 1. 颜色生成器 ====================
 const CATEGORY_COLORS = {
-  '红石介绍': '#B22222',
-  '机制介绍': '#2196F3',
-  '红石机械介绍': '#FF9800',
-  '建筑': '#9C27B0',
-  '原理图': '#4CAF50',
-  '树场': '#2E7D32',
-  'Java': '#E76F00',
+  '活动介绍': '#B22222',
+  '活动回顾': '#2196F3',
+  '精彩瞬间': '#FF9800',
+  '校园风光': '#9C27B0',
+  '集体相册': '#4CAF50',
+  '毕业季': '#2E7D32',
+  '学术讲座': '#E76F00',
   '默认': '#607D8B'
 };
 
@@ -338,7 +338,7 @@ class CardLoader extends HTMLElement {
       progressBar.style.display = 'none';
 
       if (this._container.children.length === 0) {
-        this._container.innerHTML = '<div class="empty-state">暂无资源卡片</div>';
+        this._container.innerHTML = '<div class="empty-state">暂无照片</div>';
       }
       console.log('[CardLoader] 加载完成');
     } catch (error) {

@@ -3,14 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录 - 校园照片墙</title>
+    <title>校园活动照片墙 - 登录</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet">
-    <link rel="stylesheet" href="../../css/style.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #1a3a5c 0%, #1e4d7b 50%, #2a6ba0 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -19,92 +24,270 @@
             position: relative;
         }
 
+        /* 背景装饰 */
         .bg-pattern {
-            position: fixed; inset: 0; opacity: 0.03;
+            position: fixed;
+            inset: 0;
+            opacity: 0.03;
             background-image: radial-gradient(circle at 25% 25%, #fff 1px, transparent 1px);
-            background-size: 60px 60px; pointer-events: none;
+            background-size: 60px 60px;
+            pointer-events: none;
         }
 
+        /* 登录卡片 */
         .login-card {
-            width: 100%; max-width: 420px;
+            width: 100%;
+            max-width: 420px;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
-            border-radius: 20px; padding: 48px 40px;
+            border-radius: 20px;
+            padding: 48px 40px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            position: relative; z-index: 1;
+            position: relative;
+            z-index: 1;
         }
 
-        .login-header { text-align: center; margin-bottom: 32px; }
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
 
         .login-logo {
-            width: 64px; height: 64px; margin: 0 auto 16px;
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
             border-radius: 16px;
-            background: linear-gradient(135deg, #4a90d9, #6ab0f0);
-            display: flex; align-items: center; justify-content: center; font-size: 32px;
+            background: linear-gradient(135deg, #342ead, #5a4fcf);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
         }
 
-        .login-title { font-size: 24px; font-weight: 700; color: #18191c; margin-bottom: 8px; }
-        .login-subtitle { font-size: 14px; color: var(--text-muted); }
+        .login-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
 
-        .input-group { margin-bottom: 20px; }
-        .input-label { display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 8px; }
+        .login-subtitle {
+            font-size: 14px;
+            color: #767676;
+        }
+
+        /* 输入框 */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
 
         .input-field {
-            width: 100%; height: 48px; padding: 0 16px;
-            border: 2px solid var(--border-color); border-radius: 12px;
-            font-size: 15px; outline: none; transition: var(--transition);
-            font-family: inherit; background: #fafafa;
+            width: 100%;
+            height: 48px;
+            padding: 0 16px;
+            border: 2px solid #e3e5e7;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.2s;
+            font-family: inherit;
+            background: #fafafa;
         }
-        .input-field:focus { border-color: var(--accent-color); background: #fff; box-shadow: 0 0 0 4px var(--accent-light); }
-        .input-field::placeholder { color: #b3b3b3; }
 
+        .input-field:focus {
+            border-color: #342ead;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(52, 46, 173, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: #b3b3b3;
+        }
+
+        /* 登录按钮 */
         .login-btn {
-            width: 100%; height: 48px; border: none; border-radius: 12px;
-            background: linear-gradient(135deg, #4a90d9, #6ab0f0);
-            color: #fff; font-size: 16px; font-weight: 600; cursor: pointer;
-            transition: var(--transition); font-family: inherit; margin-top: 8px;
+            width: 100%;
+            height: 48px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #342ead, #5a4fcf);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            margin-top: 8px;
         }
-        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(74, 144, 217, 0.3); }
-        .login-btn:active { transform: translateY(0); }
-        .login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-        .register-link { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text-muted); }
-        .register-link a { color: var(--accent-color); font-weight: 600; text-decoration: none; }
-        .register-link a:hover { text-decoration: underline; }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(52, 46, 173, 0.3);
+        }
 
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 注册链接 */
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #767676;
+        }
+
+        .register-link a {
+            color: #342ead;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* 错误提示 */
         .error-msg {
-            background: #fdeaea; color: #e74c3c; padding: 12px 16px;
-            border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none;
+            background: #fdeaea;
+            color: #e74c3c;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
         }
-        .error-msg.show { display: block; }
 
+        .error-msg.show {
+            display: block;
+        }
+
+        /* ========== 左下角浮动菜单（CodePen 风格） ========== */
+        .floating-menu {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .floating-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+            width: fit-content;
+        }
+
+        .floating-menu-item:hover {
+            transform: translateX(8px);
+            background: #fff;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .floating-menu-item:hover .material-icons {
+            color: #342ead;
+        }
+
+        .floating-menu-item .material-icons {
+            font-size: 22px;
+            color: #767676;
+            transition: color 0.25s ease;
+        }
+
+        .floating-menu-label {
+            white-space: nowrap;
+        }
+
+        /* 返回主页按钮 */
         .back-home {
-            position: fixed; top: 24px; left: 24px; display: flex; align-items: center; gap: 8px;
-            padding: 10px 18px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
-            border-radius: 999px; text-decoration: none; color: #fff; font-size: 14px; font-weight: 500;
-            transition: var(--transition); border: 1px solid rgba(255, 255, 255, 0.2); z-index: 100;
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 999px;
+            text-decoration: none;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 100;
         }
-        .back-home:hover { background: rgba(255, 255, 255, 0.2); }
-        .back-home .material-icons { font-size: 18px; }
 
+        .back-home:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .back-home .material-icons {
+            font-size: 18px;
+        }
+
+        /* 响应式 */
         @media (max-width: 480px) {
-            .login-card { padding: 32px 24px; }
+            .login-card {
+                padding: 32px 24px;
+            }
+            .floating-menu {
+                bottom: 16px;
+                left: 16px;
+            }
+            .floating-menu-item {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div class="bg-pattern"></div>
 
+    <!-- 返回主页 -->
     <a href="index.html" class="back-home">
         <span class="material-icons">arrow_back</span>
         <span>返回主页</span>
     </a>
 
+    <!-- 登录卡片 -->
     <div class="login-card">
         <div class="login-header">
-            <div class="login-logo">🎓</div>
+            <div class="login-logo">📸</div>
             <h1 class="login-title">欢迎回来</h1>
-            <p class="login-subtitle">登录以收藏喜爱的校园影像</p>
+            <p class="login-subtitle">登录后即可评论和收藏喜欢的照片</p>
         </div>
 
         <div class="error-msg" id="errorMsg"></div>
@@ -126,15 +309,44 @@
         </div>
     </div>
 
+    <!-- 左下角浮动菜单 -->
+    <div class="floating-menu">
+        <a href="index.html" class="floating-menu-item">
+            <span class="material-icons">home</span>
+            <span class="floating-menu-label">主页</span>
+        </a>
+        <a href="redstone-intro.html" class="floating-menu-item">
+            <span class="material-icons">bolt</span>
+            <span class="floating-menu-label">活动介绍</span>
+        </a>
+        <a href="mechanism.html" class="floating-menu-item">
+            <span class="material-icons">settings</span>
+            <span class="floating-menu-label">活动回顾</span>
+        </a>
+        <a href="redstone-machines.html" class="floating-menu-item">
+            <span class="material-icons">precision_manufacturing</span>
+            <span class="floating-menu-label">精彩瞬间</span>
+        </a>
+        <a href="building.html" class="floating-menu-item">
+            <span class="material-icons">castle</span>
+            <span class="floating-menu-label">校园风光</span>
+        </a>
+        <a href="schematics.html" class="floating-menu-item">
+            <span class="material-icons">map</span>
+            <span class="floating-menu-label">集体相册</span>
+        </a>
+    </div>
+
     <script>
-        // 已登录则直接返回
-        const userInfo = JSON.parse(localStorage.getItem('cpw_user') || 'null');
+        // 检查是否已登录
+        const userInfo = JSON.parse(localStorage.getItem('mc_user') || 'null');
         if (userInfo && userInfo.isLoggedIn) {
             const returnUrl = sessionStorage.getItem('login_return_url') || 'index.html';
             sessionStorage.removeItem('login_return_url');
             window.location.href = returnUrl;
         }
 
+        // 保存返回URL（从哪个页面来的）
         if (document.referrer && !document.referrer.includes('login.html')) {
             sessionStorage.setItem('login_return_url', document.referrer);
         }
@@ -155,15 +367,18 @@
             loginBtn.textContent = '登录中...';
 
             try {
-                const users = JSON.parse(localStorage.getItem('cpw_users') || '[]');
+                // 模拟登录验证（实际项目中替换为真实 API）
+                // 这里使用 localStorage 模拟用户系统
+                const users = JSON.parse(localStorage.getItem('mc_users') || '[]');
                 const user = users.find(u => u.name === username && u.password === password);
 
                 if (user) {
-                    localStorage.setItem('cpw_user', JSON.stringify({
+                    localStorage.setItem('mc_user', JSON.stringify({
                         name: user.name,
                         avatar: user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=b6e3f4`,
                         isLoggedIn: true
                     }));
+                    // 返回上一页或主页
                     const returnUrl = sessionStorage.getItem('login_return_url') || 'index.html';
                     sessionStorage.removeItem('login_return_url');
                     window.location.href = returnUrl;
@@ -190,13 +405,14 @@
                 errorMsg.classList.add('show');
                 return;
             }
+
             if (password.length < 6) {
-                errorMsg.textContent = '密码至少需要 6 位';
+                errorMsg.textContent = '密码至少需要6位';
                 errorMsg.classList.add('show');
                 return;
             }
 
-            const users = JSON.parse(localStorage.getItem('cpw_users') || '[]');
+            const users = JSON.parse(localStorage.getItem('mc_users') || '[]');
             if (users.find(u => u.name === username)) {
                 errorMsg.textContent = '用户名已存在';
                 errorMsg.classList.add('show');
@@ -210,14 +426,16 @@
                 createdAt: Date.now()
             });
 
-            localStorage.setItem('cpw_users', JSON.stringify(users));
+            localStorage.setItem('mc_users', JSON.stringify(users));
             errorMsg.textContent = '注册成功！请登录';
             errorMsg.style.background = '#e8f5e9';
             errorMsg.style.color = '#2e7d32';
             errorMsg.classList.add('show');
+            // 清空密码
             document.getElementById('password').value = '';
         }
 
+        // Enter 键登录
         document.getElementById('password').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleLogin();
         });

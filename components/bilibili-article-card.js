@@ -291,7 +291,7 @@ class ArticleLoader extends HTMLElement {
       progressBar.style.display = 'none';
 
       if (this._container.children.length === 0) {
-        this._container.innerHTML = '<div class="empty-state">暂无资源</div>';
+        this._container.innerHTML = '<div class="empty-state">暂无照片</div>';
       }
     } catch (error) {
       console.error('[ArticleLoader] 加载失败:', error);
