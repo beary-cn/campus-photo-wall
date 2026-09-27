@@ -68,6 +68,7 @@ data/毕业季合影/毕业季合影.json
 
 **完整模板**（复制后按需修改）：
 
+
 ```json
 {
   "title": "毕业季合影",
@@ -84,21 +85,32 @@ data/毕业季合影/毕业季合影.json
       "intro": "全体毕业生与老师合影",
       "image": "1.jpg",
       "date": "2026-06-15"
-    },
-    {
-      "title": "班级合影",
-      "intro": "计算机系1班",
-      "image": "2.jpg",
-      "date": "2026-06-15"
-    },
-    {
-      "title": "拨穗瞬间",
-      "intro": "校长拨穗",
-      "image": "3.png",
-      "date": "2026-06-15"
     }
   ],
   "content": "<h2>毕业快乐</h2><p>四年时光，感谢相遇。</p>"
+}
+```
+**空白模板**：
+
+```json
+{
+  "title": "",
+  "category": "",
+  "categories": [""],
+  "categoryColors": [""],
+  "date": "",
+  "photographer": "",
+  "location": "",
+  "intro": "",
+  "cards": [
+    {
+      "title": "",
+      "intro": "",
+      "image": "",
+      "date": ""
+    }
+  ],
+  "content": ""
 }
 ```
 
