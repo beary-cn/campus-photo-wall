@@ -125,13 +125,13 @@ class McNavbar extends HTMLElement {
                         </div>
                     </div>
                     <div class="user-dropdown-divider"></div>
-                    <a href="login.html" class="user-dropdown-item" onclick="event.preventDefault(); localStorage.removeItem('mc_user'); window.location.reload();">
+                    <a href="login.html" class="user-dropdown-item" target="_self" onclick="event.preventDefault(); localStorage.removeItem('mc_user'); window.location.reload();">
                         <span class="material-icons">logout</span>
                         <span>退出登录</span>
                     </a>
                 </div>
             </div>`
-            : `<a href="login.html" class="login-link" title="登录">
+            : `<a href="login.html" class="login-link" title="登录" target="_self">
                 <span class="material-icons">account_circle</span>
             </a>`;
 
@@ -652,17 +652,13 @@ class McNavbar extends HTMLElement {
                         </svg>
                     </button>
 
-                    <a href="index.html">
+                    <a href="index.html" target="_self">
                         ${iconHtml}
                     </a>
 
                     <ul class="nav-links">
-                        <li><a href="index.html">主页</a></li>
-                        <li><a href="redstone-intro.html">活动介绍</a></li>
-                        <li><a href="mechanism.html">活动回顾</a></li>
-                        <li><a href="redstone-machines.html">精彩瞬间</a></li>
-                        <li><a href="building.html">校园风光</a></li>
-                        <li><a href="schematics.html">集体相册</a></li>
+                        <li><a href="index.html" target="_self">主页</a></li>
+                        <li><a href="schematics.html" target="_self">集体相册</a></li>
                     </ul>
                 </div>
 
@@ -821,14 +817,9 @@ class McNavbar extends HTMLElement {
                    category.includes(query.toLowerCase());
         });
 
-        if (results.length === 1) {
-            // 只有一个结果，直接跳转
+        if (results.length > 0) {
+            // 跳转到第一个匹配结果
             window.location.href = `article.html?id=${encodeURIComponent(results[0].folder)}`;
-        } else if (results.length > 0) {
-            // 多个结果，存储到 sessionStorage 并跳转搜索页面
-            sessionStorage.setItem('search_query', query);
-            sessionStorage.setItem('search_results', JSON.stringify(results));
-            window.location.href = 'search-results.html';
         } else {
             alert('未找到相关结果');
         }
@@ -885,7 +876,7 @@ class McNavbar extends HTMLElement {
             `;
         } else {
             container.innerHTML = results.map(item => `
-                <a href="article.html?id=${encodeURIComponent(item.folder)}" class="search-suggestion-item">
+                <a href="article.html?id=${encodeURIComponent(item.folder)}" class="search-suggestion-item" target="_self">
                     <img class="search-suggestion-img" src="${item.image}" alt="" onerror="this.style.display='none'">
                     <div class="search-suggestion-info">
                         <div class="search-suggestion-title">${item.title}</div>

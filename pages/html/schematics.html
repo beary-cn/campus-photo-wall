@@ -695,24 +695,31 @@
                     </button>
                 </li>
                 <li class="category-item">
-                    <button class="category-link" data-category="班级合影">
-                        <span class="category-icon">🏗️</span>
-                        <span class="category-name">班级合影</span>
-                        <span class="category-count" id="count-班级合影">0</span>
+                    <button class="category-link" data-category="明德">
+                        <span class="category-icon">🏛️</span>
+                        <span class="category-name">明德</span>
+                        <span class="category-count" id="count-明德">0</span>
                     </button>
                 </li>
                 <li class="category-item">
-                    <button class="category-link" data-category="社团合影">
-                        <span class="category-icon">⚔️</span>
-                        <span class="category-name">社团合影</span>
-                        <span class="category-count" id="count-社团合影">0</span>
+                    <button class="category-link" data-category="博学">
+                        <span class="category-icon">📚</span>
+                        <span class="category-name">博学</span>
+                        <span class="category-count" id="count-博学">0</span>
                     </button>
                 </li>
                 <li class="category-item">
-                    <button class="category-link" data-category="活动合影">
-                        <span class="category-icon">📦</span>
-                        <span class="category-name">活动合影</span>
-                        <span class="category-count" id="count-活动合影">0</span>
+                    <button class="category-link" data-category="笃行">
+                        <span class="category-icon">🏃</span>
+                        <span class="category-name">笃行</span>
+                        <span class="category-count" id="count-笃行">0</span>
+                    </button>
+                </li>
+                <li class="category-item">
+                    <button class="category-link" data-category="尽美">
+                        <span class="category-icon">🌸</span>
+                        <span class="category-name">尽美</span>
+                        <span class="category-count" id="count-尽美">0</span>
                     </button>
                 </li>
             </ul>
@@ -730,12 +737,12 @@
             <!-- 工具栏 -->
             <div class="toolbar">
                 <div class="toolbar-left">
-                    <h1 class="page-title">集体相册</h1>
+                    <h1 class="page-title">活动分类</h1>
                     <span class="result-info" id="resultInfo">加载中...</span>
                 </div>
                 <div style="display: flex; gap: 12px; align-items: center;">
                     <div class="search-wrapper">
-                        <input type="text" class="search-input" id="searchInput" placeholder="搜索集体合影...">
+                        <input type="text" class="search-input" id="searchInput" placeholder="搜索活动...">
                         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="11" cy="11" r="8"></circle>
                             <path d="m21 21-4.34-4.34"></path>
@@ -753,7 +760,7 @@
             <div class="masonry-grid" id="masonryGrid">
                 <div class="loading-container">
                     <div class="loading-spinner"></div>
-                    <p class="loading-text">正在加载集体合影...</p>
+                    <p class="loading-text">正在加载活动...</p>
                 </div>
             </div>
 
@@ -791,9 +798,10 @@
 
         // 分类关键词映射
         const CATEGORY_KEYWORDS = {
-            '班级合影': ['班级', '同学', '毕业照', '全班', '班会'],
-            '社团合影': ['社团', '协会', '部门', '招新', '社团活动'],
-            '活动合影': ['活动', '志愿者', '演出', '比赛', '合影']
+            '明德': ['明德'],
+            '博学': ['博学'],
+            '笃行': ['笃行'],
+            '尽美': ['尽美']
         };
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1018,9 +1026,10 @@
         // ========== 获取标签颜色 ==========
         function getTagColor(category) {
             const colors = {
-                '班级合影': '#9C27B0',
-                '社团合影': '#f44336',
-                '活动合影': '#4CAF50',
+                '明德': '#9C27B0',
+                '博学': '#2196F3',
+                '笃行': '#4CAF50',
+                '尽美': '#FF9800',
                 '其他': '#607D8B'
             };
             return colors[category] || '#607D8B';

@@ -7,8 +7,6 @@
     <script src="/components/skeleton-card.js"></script>
     <link rel="stylesheet" href="index.css">
     <title>校园活动照片墙 - 主页</title>
-<base target="_blank">
-<base target="_blank">
 </head>
 <body>
     <mc-navbar icon-src="../image/logo.png" search-placeholder="搜索活动照片..."></mc-navbar>
@@ -48,51 +46,6 @@
       </div>
 
       <div class="featured-grid" id="featured-grid"></div>
-    </section>
-
-    <!-- ========== 活动介绍 ========== -->
-    <section class="cards-section category-section">
-      <div class="section-header">
-        <h2 class="section-title">活动介绍</h2>
-        <a href="redstone-intro.html" class="view-more">查看更多 →</a>
-      </div>
-      <div class="cards-container two-row-grid" id="redstone-intro-container"></div>
-    </section>
-
-    <!-- ========== 活动回顾 ========== -->
-    <section class="cards-section category-section">
-      <div class="section-header">
-        <h2 class="section-title">活动回顾</h2>
-        <a href="mechanism.html" class="view-more">查看更多 →</a>
-      </div>
-      <div class="cards-container two-row-grid" id="mechanism-container"></div>
-    </section>
-
-    <!-- ========== 精彩瞬间 ========== -->
-    <section class="cards-section category-section">
-      <div class="section-header">
-        <h2 class="section-title">精彩瞬间</h2>
-        <a href="redstone-machines.html" class="view-more">查看更多 →</a>
-      </div>
-      <div class="cards-container two-row-grid" id="redstone-machines-container"></div>
-    </section>
-
-    <!-- ========== 校园风光 ========== -->
-    <section class="cards-section category-section">
-      <div class="section-header">
-        <h2 class="section-title">校园风光</h2>
-        <a href="building.html" class="view-more">查看更多 →</a>
-      </div>
-      <div class="cards-container two-row-grid" id="building-container"></div>
-    </section>
-
-    <!-- ========== 集体相册 ========== -->
-    <section class="cards-section category-section">
-      <div class="section-header">
-        <h2 class="section-title">集体相册</h2>
-        <a href="schematics.html" class="view-more">查看更多 →</a>
-      </div>
-      <div class="cards-container two-row-grid" id="schematics-container"></div>
     </section>
 
     <!-- ========== 全部照片（保留原有） ========== -->
@@ -212,10 +165,6 @@
       const allLoaded = document.getElementById('all-loaded');
 
       const categoryContainers = {
-        '活动介绍': document.getElementById('redstone-intro-container'),
-        '活动回顾': document.getElementById('mechanism-container'),
-        '精彩瞬间': document.getElementById('redstone-machines-container'),
-        '校园风光': document.getElementById('building-container'),
         '集体相册': document.getElementById('schematics-container')
       };
 
@@ -371,10 +320,10 @@
           } catch (e) {}
         }
 
-        // 存储结果并跳转
-        sessionStorage.setItem('search_query', query);
-        sessionStorage.setItem('search_results', JSON.stringify(results));
-        window.location.href = 'search-results.html';
+        // 跳转到第一个匹配结果
+        if (results.length > 0) {
+          window.location.href = `article.html?id=${encodeURIComponent(results[0].folder)}`;
+        }
       } catch (e) {
         console.error('搜索失败:', e);
       }
