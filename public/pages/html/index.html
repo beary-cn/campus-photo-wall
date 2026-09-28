@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/components/mc-navbar.js"></script>
+    <script src="/components/skeleton-card.js"></script>
+    <link rel="stylesheet" href="index.css">
+    <title>校园活动照片墙 - 主页</title>
+</head>
+<body>
+    <mc-navbar icon-src="../image/logo.png" search-placeholder="搜索活动照片..."></mc-navbar>
+    <div class="main-container">
+
+    <!-- 轮播图 + 特色卡片 -->
+    <section class="hero-section">
+      <div class="carousel-wrapper">
+        <div class="carousel-container" id="carousel">
+          <div class="carousel-slide active">
+            <img src="/src/20120705105354979.jpg" alt="轮播1">
+            <div class="carousel-caption">
+              <h2>精选活动推荐</h2>
+              <p>发现最热门的校园活动</p>
+            </div>
+          </div>
+          <div class="carousel-slide">
+            <img src="/src/271fcc43dd6031c2a2e74935ee9373fe.jpg" alt="轮播2">
+            <div class="carousel-caption">
+              <h2>本周热门</h2>
+              <p>同学们最爱的活动瞬间</p>
+            </div>
+          </div>
+          <div class="carousel-slide">
+            <img src="/src/aaa7ffb2f2785400cd4007243b9a8cad.jpg" alt="轮播3">
+            <div class="carousel-caption">
+              <h2>最新上传</h2>
+              <p>最新收录的活动照片</p>
+            </div>
+          </div>
+          <div class="carousel-dots">
+            <span class="carousel-dot active" data-index="0"></span>
+            <span class="carousel-dot" data-index="1"></span>
+            <span class="carousel-dot" data-index="2"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="featured-grid" id="featured-grid"></div>
+    </section>
+
+    <!-- ========== 全部照片（保留原有） ========== -->
+    <section class="cards-section">
+      <h2 class="section-title">全部照片</h2>
+      <div class="cards-container" id="cards-container"></div>
+      <div class="load-more" id="load-more">
+        <span class="load-more-text">向下滚动加载更多</span>
+        <div class="load-more-spinner" style="display:none;">
+          <div class="spinner"></div>
+        </div>
+      </div>
+      <div class="all-loaded" id="all-loaded" style="display:none;">已经到底了 ~</div>
+    </section>
+  </div>
+
+  <style>
+    /* ========== 分类模块标题栏 ========== */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+
+    .view-more {
+      font-size: 0.9rem;
+      color: #ff8c42;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .view-more:hover {
+      color: #ff6b1a;
+      background: rgba(255, 140, 66, 0.1);
+    }
+
+    /* ========== 两行卡片网格（固定2行） ========== */
+    .two-row-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      max-height: calc(2 * (280px * 0.5625 + 1.25rem + 28px + 80px + 2.5rem) + 1.5rem);
+      overflow: hidden;
+    }
+
+    .category-section {
+      margin-bottom: 3rem;
+      border-top: 2px solid #e8e8e8;
+      padding-top: 2rem;
+    }
+
+    .category-section:first-of-type {
+      border-top: none;
+      padding-top: 0;
+    }
+
+    @media (max-width: 768px) {
+      .section-header {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .view-more {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+
+  <script>
+    // 轮播图
+    const slides = document.querySelectorAll('.carousel-slide');
+    const dots = document.querySelectorAll('.carousel-dot');
+    let currentSlide = 0;
+    function showSlide(index) {
+      slides.forEach((s, i) => s.classList.toggle('active', i === index));
+      dots.forEach((d, i) => d.classList.toggle('active', i === index));
+      currentSlide = index;
+    }
+    dots.forEach(dot => dot.addEventListener('click', () => showSlide(parseInt(dot.dataset.index))));
+    setInterval(() => showSlide((currentSlide + 1) % slides.length), 5000);
+
+    const API_BASE = '/api';
+    const BASE_PATH = '.';
+    const ITEMS_PER_ROW = 4;
+    const ROWS_PER_LOAD = 3;
+    const ITEMS_PER_LOAD = ITEMS_PER_ROW * ROWS_PER_LOAD;
+
+    // 后端数据 → 前端卡片格式转换
+    function normalizeAlbum(data) {
+      return {
+        title: data.title,
+        category: data.category,
+        categories: data.categoriesJson ? JSON.parse(data.categoriesJson) : [data.category],
+        categoryColors: data.categoryColorsJson ? JSON.parse(data.categoryColorsJson) : [],
+        intro: data.intro,
+        bilibili: data.bilibili,
+        content: data.content,
+        id: data.folder || data.id,
+        folder: data.folder,
+        cards: (data.photos || []).map(p => ({
+          title: p.title,
+          intro: p.intro,
+          image: p.imagePath
+        }))
+      };
+    }
+
+    function setupCard(sk, album, card) {
+      const imgUrl = card.image.startsWith('http') || card.image.startsWith('/')
+        ? card.image
+        : `/uploads/${album.folder}/${card.image}`;
+      sk.setAttribute('image', imgUrl);
+      sk.setAttribute('title', card.title);
+      sk.setAttribute('intro', card.intro);
+      sk.setAttribute('article-id', album.folder || album.id);
+      sk.setAttribute('base-path', BASE_PATH);
+
+      if (album.categories && Array.isArray(album.categories)) {
+        sk.setAttribute('categories', JSON.stringify(album.categories));
+        if (album.categoryColors && Array.isArray(album.categoryColors)) {
+          sk.setAttribute('category-colors', JSON.stringify(album.categoryColors));
+        }
+      } else {
+        sk.setAttribute('category', album.category || album.folder);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const featuredGrid = document.getElementById('featured-grid');
+      const cardsContainer = document.getElementById('cards-container');
+      const loadMore = document.getElementById('load-more');
+      const loadMoreText = loadMore.querySelector('.load-more-text');
+      const loadMoreSpinner = loadMore.querySelector('.load-more-spinner');
+      const allLoaded = document.getElementById('all-loaded');
+
+      const categoryContainers = {
+        '集体相册': document.getElementById('schematics-container')
+      };
+
+      let allAlbums = [];
+      let currentIndex = 0;
+      let isLoading = false;
+
+      fetch(`${API_BASE}/albums`)
+        .then(r => {
+          if (!r.ok) throw new Error('图集列表加载失败');
+          return r.json();
+        })
+        .then(res => {
+          allAlbums = (res.data || []).sort(() => Math.random() - 0.5);
+
+          // ========== 右侧 2×2 特色卡片 ==========
+          allAlbums.slice(0, 4).forEach(album => {
+            const sk = document.createElement('skeleton-card');
+            featuredGrid.appendChild(sk);
+
+            fetch(`${API_BASE}/albums/folder/${encodeURIComponent(album.folder)}`)
+              .then(r => r.json())
+              .then(res => {
+                const data = normalizeAlbum(res.data);
+                if (data.cards && data.cards[0]) {
+                  setupCard(sk, data, data.cards[0]);
+                }
+              })
+              .catch(e => {
+                console.error('加载特色卡片失败:', e);
+                sk.remove();
+              });
+          });
+
+          // ========== 按分类加载各模块 ==========
+          allAlbums.forEach(album => {
+            fetch(`${API_BASE}/albums/folder/${encodeURIComponent(album.folder)}`)
+              .then(r => r.json())
+              .then(res => {
+                const data = normalizeAlbum(res.data);
+                const categories = data.categories || [data.category || album.folder];
+                categories.forEach(cat => {
+                  const container = categoryContainers[cat];
+                  if (container && container.children.length < 8) {
+                    const card = data.cards && data.cards[0];
+                    if (card) {
+                      const sk = document.createElement('skeleton-card');
+                      setupCard(sk, data, card);
+                      container.appendChild(sk);
+                    }
+                  }
+                });
+              })
+              .catch(e => console.error('加载分类卡片失败:', e));
+          });
+
+          // ========== 初始加载全部照片 ==========
+          loadMoreItems();
+
+          // ========== 触底监听 ==========
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting && !isLoading && currentIndex < allAlbums.length) {
+                loadMoreItems();
+              }
+            });
+          }, { rootMargin: '100px' });
+
+          observer.observe(loadMore);
+        })
+        .catch(e => {
+          console.error(e);
+          cardsContainer.innerHTML = `<div style="color:#e74c3c;padding:2rem;">⚠️ ${e.message}</div>`;
+        });
+
+      function loadMoreItems() {
+        if (isLoading || currentIndex >= allAlbums.length) return;
+        isLoading = true;
+        loadMoreText.style.display = 'none';
+        loadMoreSpinner.style.display = 'block';
+
+        const batch = allAlbums.slice(currentIndex, currentIndex + ITEMS_PER_LOAD);
+        let loadedCount = 0;
+
+        batch.forEach(album => {
+          const sk = document.createElement('skeleton-card');
+          cardsContainer.appendChild(sk);
+
+          fetch(`${API_BASE}/albums/folder/${encodeURIComponent(album.folder)}`)
+            .then(r => r.json())
+            .then(res => {
+              const data = normalizeAlbum(res.data);
+              if (data.cards && data.cards[0]) {
+                setupCard(sk, data, data.cards[0]);
+              }
+            })
+            .catch(e => {
+              console.error('加载卡片失败:', e);
+              sk.remove();
+            })
+            .finally(() => {
+              loadedCount++;
+              if (loadedCount >= batch.length) {
+                isLoading = false;
+                currentIndex += batch.length;
+
+                if (currentIndex >= allAlbums.length) {
+                  loadMore.style.display = 'none';
+                  allLoaded.style.display = 'block';
+                } else {
+                  loadMoreText.style.display = 'block';
+                  loadMoreSpinner.style.display = 'none';
+                }
+              }
+            });
+        });
+      }
+    });
+
+    // 导航栏搜索功能
+    function setupNavbarSearch() {
+      const navbar = document.querySelector('mc-navbar');
+      if (!navbar) return;
+
+      navbar.addEventListener('search', (e) => {
+        const query = e.detail.query;
+        performGlobalSearch(query);
+      });
+    }
+
+    // 全局搜索
+    async function performGlobalSearch(query) {
+      if (!query || !query.trim()) return;
+
+      try {
+        const response = await fetch(`${API_BASE}/albums?search=${encodeURIComponent(query)}`);
+        const res = await response.json();
+        const albums = res.data || [];
+
+        if (albums.length > 0) {
+          window.location.href = `article.html?id=${encodeURIComponent(albums[0].folder)}`;
+        }
+      } catch (e) {
+        console.error('搜索失败:', e);
+      }
+    }
+
+    setupNavbarSearch();
+  </script>
+</body>
+</html>

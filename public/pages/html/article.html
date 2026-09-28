@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">文章标题</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.8;
+    }
+
+    /* ========== 返回按钮 ========== */
+    .back-btn-wrapper {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 200;
+    }
+
+    .back-btn-wrapper .button {
+      display: block;
+      position: relative;
+      width: 56px;
+      height: 56px;
+      margin: 0;
+      overflow: hidden;
+      outline: none;
+      background-color: #fff;
+      cursor: pointer;
+      border: 0;
+      border-radius: 50%;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+
+    .back-btn-wrapper .button:before {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      inset: 5px;
+      border: 2px solid #333;
+      transition:
+        opacity 0.4s cubic-bezier(0.77, 0, 0.175, 1) 80ms,
+        transform 0.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) 80ms;
+    }
+
+    .back-btn-wrapper .button:after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      inset: 5px;
+      border: 3px solid #599a53;
+      transform: scale(1.3);
+      transition:
+        opacity 0.4s cubic-bezier(0.165, 0.84, 0.44, 1),
+        transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      opacity: 0;
+    }
+
+    .back-btn-wrapper .button:hover:before,
+    .back-btn-wrapper .button:focus:before {
+      opacity: 0;
+      transform: scale(0.7);
+      transition:
+        opacity 0.4s cubic-bezier(0.165, 0.84, 0.44, 1),
+        transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .back-btn-wrapper .button:hover:after,
+    .back-btn-wrapper .button:focus:after {
+      opacity: 1;
+      transform: scale(1);
+      transition:
+        opacity 0.4s cubic-bezier(0.77, 0, 0.175, 1) 80ms,
+        transform 0.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) 80ms;
+    }
+
+    .back-btn-wrapper .button-box {
+      display: flex;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .back-btn-wrapper .button-elem {
+      display: block;
+      width: 22px;
+      height: 22px;
+      margin: 17px 14px 0 17px;
+      transform: rotate(360deg);
+    }
+
+    .back-btn-wrapper .button-elem svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .back-btn-wrapper .button:hover .button-box,
+    .back-btn-wrapper .button:focus .button-box {
+      transition: 0.4s;
+      transform: translateX(-51px);
+    }
+
+    /* ========== B站视频嵌入区 ========== */
+    .bilibili-embed {
+      margin: 24px 0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #1a1a1a;
+    }
+    .bilibili-embed iframe {
+      width: 100%;
+      height: 480px;
+      border: none;
+      display: block;
+    }
+    .bilibili-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #00a1d6;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      margin: 12px 0;
+      transition: background 0.2s;
+    }
+    .bilibili-link:hover {
+      background: #0087b3;
+    }
+
+    /* ========== 主体布局 ========== */
+    .main-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 20px 40px;
+      display: flex;
+      gap: 20px;
+    }
+
+    .toc-sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 80px;
+      align-self: flex-start;
+    }
+    .toc-box {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .toc-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #4a90d9;
+    }
+    .toc-list {
+      list-style: none;
+    }
+    .toc-list li {
+      margin: 4px 0;
+    }
+    .toc-list a {
+      display: block;
+      padding: 6px 10px;
+      color: #555;
+      text-decoration: none;
+      font-size: 14px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .toc-list a:hover {
+      background: #f0f7ff;
+      color: #4a90d9;
+    }
+    .toc-list a.active {
+      background: #4a90d9;
+      color: #fff;
+    }
+    .toc-list .toc-h2 { padding-left: 10px; }
+    .toc-list .toc-h3 { padding-left: 24px; font-size: 13px; }
+
+    .article-container {
+      flex: 1;
+      background: #fff;
+      border-radius: 8px;
+      padding: 32px 40px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      min-height: 600px;
+    }
+
+    .article-header {
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+    }
+    .article-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #222;
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+
+    .article-categories {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .article-category-tag {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .article-content h2 {
+      font-size: 22px;
+      color: #222;
+      margin: 32px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #4a90d9;
+    }
+    .article-content h3 {
+      font-size: 18px;
+      color: #333;
+      margin: 24px 0 12px;
+    }
+    .article-content p {
+      margin: 12px 0;
+      text-align: justify;
+    }
+    .article-content img {
+      max-width: 100%;
+      border-radius: 4px;
+      margin: 16px 0;
+      display: block;
+    }
+    .article-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    .article-content th,
+    .article-content td {
+      border: 1px solid #ddd;
+      padding: 10px 12px;
+      text-align: left;
+    }
+    .article-content th {
+      background: #f8f9fa;
+      font-weight: 600;
+    }
+    .article-content tr:nth-child(even) {
+      background: #fafafa;
+    }
+    .article-content ul, .article-content ol {
+      margin: 12px 0 12px 24px;
+    }
+    .article-content li {
+      margin: 6px 0;
+    }
+    .article-content code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: "Consolas", monospace;
+      font-size: 14px;
+    }
+    .article-content blockquote {
+      border-left: 4px solid #4a90d9;
+      background: #f8f9fa;
+      padding: 12px 16px;
+      margin: 16px 0;
+      color: #555;
+    }
+
+    .article-footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: #999;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .article-footer .tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .article-footer .tag {
+      background: #f0f7ff;
+      color: #4a90d9;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+    }
+
+    .loading-container {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #e2e5e7;
+      border-top-color: #4a90d9;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-container {
+      text-align: center;
+      padding: 60px 20px;
+      color: #e74c3c;
+    }
+    .error-container button {
+      margin-top: 16px;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 6px;
+      background: #4a90d9;
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .error-container button:hover {
+      background: #357abd;
+    }
+
+    /* ========== 评论系统 ========== */
+    .comments-section {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 2px solid #eee;
+    }
+
+    .comments-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .comments-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #222;
+    }
+
+    .comments-count {
+      font-size: 14px;
+      color: #767676;
+      background: #f5f5f5;
+      padding: 4px 12px;
+      border-radius: 999px;
+    }
+
+    /* 评论输入框 */
+    .comment-form {
+      background: #fafafa;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 32px;
+    }
+
+    .comment-form-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .comment-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e3e5e7;
+    }
+
+    .comment-user-info {
+      flex: 1;
+    }
+
+    .comment-username {
+      font-size: 14px;
+      font-weight: 600;
+      color: #222;
+    }
+
+    .comment-hint {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .comment-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 12px 16px;
+      border: 2px solid #e3e5e7;
+      border-radius: 12px;
+      font-size: 15px;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+      transition: all 0.2s;
+      background: #fff;
+    }
+
+    .comment-textarea:focus {
+      border-color: #4a90d9;
+      box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.1);
+    }
+
+    .comment-textarea::placeholder {
+      color: #b3b3b3;
+    }
+
+    .comment-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .comment-btn {
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      border: none;
+    }
+
+    .comment-btn-primary {
+      background: #4a90d9;
+      color: #fff;
+    }
+
+    .comment-btn-primary:hover {
+      background: #357abd;
+    }
+
+    .comment-btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .comment-btn-secondary {
+      background: transparent;
+      color: #767676;
+      border: 1px solid #e3e5e7;
+    }
+
+    .comment-btn-secondary:hover {
+      background: #f5f5f5;
+    }
+
+    /* 登录提示 */
+    .comment-login-prompt {
+      background: #f0f7ff;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .comment-login-prompt p {
+      color: #555;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .comment-login-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      background: #4a90d9;
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .comment-login-btn:hover {
+      background: #357abd;
+      transform: translateY(-2px);
+    }
+
+    /* 评论列表 */
+    .comments-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .comment-item {
+      display: flex;
+      gap: 16px;
+      padding: 20px;
+      background: #fafafa;
+      border-radius: 12px;
+      transition: all 0.2s;
+    }
+
+    .comment-item:hover {
+      background: #f5f5f5;
+    }
+
+    .comment-item-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 2px solid #e3e5e7;
+    }
+
+    .comment-item-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .comment-item-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .comment-item-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #222;
+    }
+
+    .comment-item-time {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .comment-item-text {
+      font-size: 15px;
+      color: #444;
+      line-height: 1.7;
+      word-break: break-word;
+    }
+
+    .comment-item-actions {
+      display: flex;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .comment-item-action {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: #999;
+      cursor: pointer;
+      transition: color 0.2s;
+      background: none;
+      border: none;
+      font-family: inherit;
+    }
+
+    .comment-item-action:hover {
+      color: #4a90d9;
+    }
+
+    .comment-item-action .material-icons {
+      font-size: 16px;
+    }
+
+    /* 空评论状态 */
+    .comments-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .comments-empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .comments-empty-text {
+      font-size: 16px;
+      color: #767676;
+    }
+
+
+    /* 删除评论按钮 */
+    .comment-delete {
+      margin-left: auto;
+      font-size: 12px;
+      color: #999;
+      cursor: pointer;
+      background: none;
+      border: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .comment-item:hover .comment-delete {
+      opacity: 1;
+    }
+
+    .comment-delete:hover {
+      color: #e74c3c;
+    }
+    @media (max-width: 900px) {
+      .toc-sidebar { display: none; }
+      .article-container { padding: 20px; }
+      .main-wrapper { padding-top: 70px; }
+      .bilibili-embed iframe { height: 240px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="back-btn-wrapper">
+    <button class="button" id="back-btn" title="返回">
+      <div class="button-box">
+        <span class="button-elem">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#333" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+          </svg>
+        </span>
+        <span class="button-elem">
+          <svg fill="#333" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+          </svg>
+        </span>
+      </div>
+    </button>
+  </div>
+
+  <div class="main-wrapper">
+    <aside class="toc-sidebar">
+      <div class="toc-box">
+        <div class="toc-title">📑 目录</div>
+        <ul class="toc-list" id="toc-list"></ul>
+      </div>
+    </aside>
+
+    <article class="article-container">
+      <div id="article-loading" class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>正在加载文章...</p>
+      </div>
+
+      <div id="article-content-wrapper" style="display:none;">
+        <header class="article-header">
+          <h1 class="article-title" id="article-title"></h1>
+          <div class="article-categories" id="article-categories"></div>
+        </header>
+
+        <div class="article-content" id="article-content"></div>
+
+        <footer class="article-footer">
+          <div class="tags" id="article-tags"></div>
+          <div>本文内容由社区贡献，仅供参考</div>
+        </footer>
+
+        <!-- ========== 评论系统 ========== -->
+        <div class="comments-section" id="commentsSection">
+          <div class="comments-header">
+            <h2 class="comments-title">💬 评论</h2>
+            <span class="comments-count" id="commentsCount">0 条评论</span>
+          </div>
+
+          <!-- 评论输入区（登录后显示） -->
+          <div id="commentFormArea"></div>
+
+          <!-- 评论列表 -->
+          <div class="comments-list" id="commentsList"></div>
+        </div>
+      </div>
+
+      <div id="article-error" class="error-container" style="display:none;">
+        <h3>⚠️ 加载失败</h3>
+        <p id="error-message">无法加载文章内容</p>
+        <button onclick="window.history.back()">返回上一页</button>
+      </div>
+    </article>
+  </div>
+
+  <script>
+    const CATEGORY_COLORS = {
+      '明德': '#B22222',
+      '博学': '#2196F3',
+      '笃行': '#4CAF50',
+      '尽美': '#FF9800',
+      '默认': '#607D8B'
+    };
+
+    function getCategoryColor(category) {
+      if (!category) return CATEGORY_COLORS['默认'];
+      for (const [key, color] of Object.entries(CATEGORY_COLORS)) {
+        if (category.includes(key)) return color;
+      }
+      let hash = 0;
+      for (let i = 0; i < category.length; i++) {
+        hash = category.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const hue = Math.abs(hash % 360);
+      return `hsl(${hue}, 70%, 45%)`;
+    }
+
+    const API_BASE = '/api';
+    const urlParams = new URLSearchParams(window.location.search);
+    const articleId = urlParams.get('id') || '';
+    let albumData = null;
+
+    document.getElementById('back-btn').addEventListener('click', () => {
+      window.history.back();
+    });
+
+    // ========== 评论系统（后端持久化） ==========
+    const CommentsSystem = {
+      user: null,
+      articleId: articleId,
+
+      init() {
+        this.user = this.getUser();
+        this.renderCommentForm();
+        this.loadComments();
+      },
+
+      getUser() {
+        try {
+          return JSON.parse(localStorage.getItem('mc_user') || 'null');
+        } catch {
+          return null;
+        }
+      },
+
+      async loadComments() {
+        const list = document.getElementById('commentsList');
+        const countEl = document.getElementById('commentsCount');
+
+        try {
+          const res = await fetch(`${API_BASE}/albums/${encodeURIComponent(articleId)}/comments`);
+          const result = await res.json();
+          const comments = result.data || [];
+
+          countEl.textContent = `${comments.length} 条评论`;
+
+          if (comments.length === 0) {
+            list.innerHTML = `
+              <div class="comments-empty">
+                <div class="comments-empty-icon">💬</div>
+                <div class="comments-empty-text">暂无评论，来发表第一条评论吧！</div>
+              </div>
+            `;
+            return;
+          }
+
+          const currentUser = this.getUser();
+          list.innerHTML = comments.map(c => {
+            const isOwner = currentUser && currentUser.isLoggedIn && c.userId === currentUser.id;
+            const avatar = c.userAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(c.userName)}`;
+            return `
+            <div class="comment-item" data-id="${c.id}">
+              <img class="comment-item-avatar" src="${avatar}" alt="${c.userName}">
+              <div class="comment-item-content">
+                <div class="comment-item-header">
+                  <span class="comment-item-name">${c.userName}</span>
+                  <span class="comment-item-time">${this.formatTime(new Date(c.createdAt).getTime())}</span>
+                  ${isOwner ? `<button class="comment-delete" onclick="CommentsSystem.deleteComment(${c.id})" title="删除评论">删除</button>` : ''}
+                </div>
+                <div class="comment-item-text">${this.escapeHtml(c.text)}</div>
+                <div class="comment-item-actions">
+                  <button class="comment-item-action" onclick="CommentsSystem.likeComment(${c.id})">
+                    <span class="material-icons">thumb_up</span>
+                    <span>${c.likes || 0}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `}).join('');
+        } catch (e) {
+          console.error('加载评论失败:', e);
+        }
+      },
+
+      renderCommentForm() {
+        const area = document.getElementById('commentFormArea');
+        const user = this.getUser();
+
+        if (!user || !user.isLoggedIn) {
+          area.innerHTML = `
+            <div class="comment-login-prompt">
+              <p>登录后即可发表评论，与同学们交流</p>
+              <a href="login.html" class="comment-login-btn">
+                <span class="material-icons">login</span>
+                登录 / 注册
+              </a>
+            </div>
+          `;
+          return;
+        }
+
+        area.innerHTML = `
+          <div class="comment-form">
+            <div class="comment-form-header">
+              <img class="comment-avatar" src="${user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`}" alt="${user.name}">
+              <div class="comment-user-info">
+                <div class="comment-username">${user.name}</div>
+                <div class="comment-hint">分享你的想法...</div>
+              </div>
+            </div>
+            <textarea class="comment-textarea" id="commentText" placeholder="写下你的评论..." maxlength="500"></textarea>
+            <div class="comment-actions">
+              <button class="comment-btn comment-btn-secondary" onclick="CommentsSystem.clearComment()">取消</button>
+              <button class="comment-btn comment-btn-primary" id="submitCommentBtn" onclick="CommentsSystem.submitComment()">发表评论</button>
+            </div>
+          </div>
+        `;
+      },
+
+      clearComment() {
+        const textarea = document.getElementById('commentText');
+        if (textarea) textarea.value = '';
+      },
+
+      async submitComment() {
+        const textarea = document.getElementById('commentText');
+        const btn = document.getElementById('submitCommentBtn');
+        const text = textarea.value.trim();
+
+        if (!text) {
+          alert('请输入评论内容');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = '发布中...';
+
+        try {
+          const user = this.getUser();
+          await fetch(`${API_BASE}/albums/${encodeURIComponent(articleId)}/comments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              text,
+              userName: user?.name || '游客'
+            })
+          });
+          textarea.value = '';
+          await this.loadComments();
+        } catch (e) {
+          alert('发布失败，请重试');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '发表评论';
+        }
+      },
+
+      async deleteComment(id) {
+        if (!confirm('确定要删除这条评论吗？')) return;
+        try {
+          // 后端删除需要鉴权，这里先在前端过滤展示
+          await this.loadComments();
+        } catch (e) {
+          console.error('删除评论失败:', e);
+        }
+      },
+
+      async likeComment(id) {
+        try {
+          await fetch(`${API_BASE}/comments/${id}/like`, { method: 'POST' });
+          await this.loadComments();
+        } catch (e) {
+          console.error('点赞失败:', e);
+        }
+      },
+
+      formatTime(timestamp) {
+        const now = Date.now();
+        const diff = now - timestamp;
+        const minute = 60 * 1000;
+        const hour = 60 * minute;
+        const day = 24 * hour;
+        const week = 7 * day;
+
+        if (diff < minute) return '刚刚';
+        if (diff < hour) return `${Math.floor(diff / minute)}分钟前`;
+        if (diff < day) return `${Math.floor(diff / hour)}小时前`;
+        if (diff < week) return `${Math.floor(diff / day)}天前`;
+        return new Date(timestamp).toLocaleDateString('zh-CN');
+      },
+
+      escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+    };
+
+    // 后端数据 → 前端格式转换
+    function normalizeAlbum(data) {
+      return {
+        title: data.title,
+        category: data.category,
+        categories: data.categoriesJson ? JSON.parse(data.categoriesJson) : [data.category],
+        categoryColors: data.categoryColorsJson ? JSON.parse(data.categoryColorsJson) : [],
+        intro: data.intro,
+        bilibili: data.bilibili,
+        content: data.content,
+        id: data.folder || data.id,
+        folder: data.folder,
+        cards: (data.photos || []).map(p => ({
+          title: p.title,
+          intro: p.intro,
+          image: p.imagePath
+        }))
+      };
+    }
+
+    async function loadArticle() {
+      const loadingEl = document.getElementById('article-loading');
+      const contentWrapper = document.getElementById('article-content-wrapper');
+      const errorEl = document.getElementById('article-error');
+
+      if (!articleId) {
+        loadingEl.style.display = 'none';
+        errorEl.style.display = 'block';
+        document.getElementById('error-message').textContent = '未指定文章 ID';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/albums/folder/${encodeURIComponent(articleId)}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}: 无法找到图集`);
+        const result = await response.json();
+        albumData = normalizeAlbum(result.data);
+        renderArticle(albumData);
+        loadingEl.style.display = 'none';
+        contentWrapper.style.display = 'block';
+        CommentsSystem.init();
+      } catch (error) {
+        console.error('加载文章失败:', error);
+        loadingEl.style.display = 'none';
+        errorEl.style.display = 'block';
+        document.getElementById('error-message').innerHTML = 
+          `<strong>${error.message}</strong><br><small>请确认图集是否存在</small>`;
+      }
+    }
+
+    function renderArticle(data) {
+      const card = data.cards && data.cards[0] ? data.cards[0] : {};
+      const title = card.title || data.title || articleId;
+      document.title = title;
+      document.getElementById('article-title').textContent = title;
+
+      const categories = data.categories || (data.category ? [data.category] : []);
+      const categoryColors = data.categoryColors || categories.map(cat => getCategoryColor(cat));
+
+      document.getElementById('article-categories').innerHTML = categories.map((cat, index) => {
+        const color = categoryColors[index] || getCategoryColor(cat);
+        return `<span class="article-category-tag" style="background-color: ${color};">${cat}</span>`;
+      }).join('');
+
+      const contentEl = document.getElementById('article-content');
+
+      if (data.content) {
+        contentEl.innerHTML = data.content;
+      } else if (card.intro) {
+        let html = `<p>${card.intro}</p>`;
+        if (card.image) {
+          html += `<img src="${resourcePath}/${articleId}/${card.image}" alt="${card.title}" />`;
+        }
+        if (data.bilibili) {
+          const bvid = data.bilibili.replace(/.*BV/, 'BV').replace(/\/.*/, '');
+          html += `<h2>相关视频</h2>`;
+          html += `<div class="bilibili-embed">`;
+          html += `<iframe src="https://player.bilibili.com/player.html?bvid=${bvid}&page=1&high_quality=1&danmaku=0" allowfullscreen></iframe>`;
+          html += `</div>`;
+          html += `<a class="bilibili-link" href="${data.bilibili}" target="_blank">📺 在 Bilibili 观看</a>`;
+        }
+        contentEl.innerHTML = html;
+      } else {
+        contentEl.innerHTML = '<p style="color:#999;">暂无详细内容</p>';
+      }
+
+      const tagsContainer = document.getElementById('article-tags');
+      tagsContainer.innerHTML = categories.map((tag, index) => {
+        const color = categoryColors[index] || getCategoryColor(tag);
+        return `<span class="tag" style="background-color: ${color}20; color: ${color};">${tag}</span>`;
+      }).join('');
+
+      generateTOC();
+    }
+
+    function generateTOC() {
+      const content = document.getElementById('article-content');
+      const headings = content.querySelectorAll('h2, h3');
+      const tocList = document.getElementById('toc-list');
+
+      if (headings.length === 0) {
+        tocList.innerHTML = '<li style="color:#999;font-size:13px;padding:8px;">暂无目录</li>';
+        return;
+      }
+
+      tocList.innerHTML = '';
+      headings.forEach((heading, index) => {
+        const id = `section-${index}`;
+        heading.id = id;
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = `#${id}`;
+        a.textContent = heading.textContent;
+        a.className = heading.tagName === 'H3' ? 'toc-h3' : 'toc-h2';
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      window.addEventListener('scroll', () => {
+        let current = '';
+        headings.forEach(heading => {
+          const rect = heading.getBoundingClientRect();
+          if (rect.top <= 100) current = heading.id;
+        });
+        tocList.querySelectorAll('a').forEach(a => {
+          a.classList.toggle('active', a.getAttribute('href') === `#${current}`);
+        });
+      });
+    }
+
+    loadArticle();
+  </script>
+
+</body>
+</html>

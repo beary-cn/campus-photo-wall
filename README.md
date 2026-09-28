@@ -1,286 +1,73 @@
-# 校园活动照片墙 - 协作指南
+# React + TypeScript + Vite
 
-> 写给协作者：本文档说明如何在不修改任何代码的前提下，向照片墙添加、编辑或删除图集。
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-**页面与资源路径约定**：HTML 页面位于 `pages/html/` 下，组件在 `components/`、数据在 `pages/resource/`、公共样式为 `pages/html/index.css`。页面中引用资源统一使用相对路径。**不要改动现有页面的脚本与样式引用方式**，否则组件会加载失败。
+Currently, two official plugins are available:
 
----
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## 一、项目结构速览
+## React Compiler
 
-```javascript
-项目根目录/
-├── components/                     # Web Components（不要修改）
-│   ├── mc-navbar.js                # 顶部导航栏（含搜索、用户头像/登录）
-│   └── skeleton-card.js            # 图集卡片 + CardLoader 自动加载组件
-├── pages/
-│   └── html/
-│       ├── index.html              # 首页（轮播 + 特色卡片 + 全部照片流）
-│       ├── schematics.html         # 集体相册（侧边栏分类 + 瀑布流 + 大图预览）
-│       ├── article.html            # 图集详情页（目录 + 内容 + 评论）
-│       ├── login.html              # 登录 / 注册页
-│       └── index.css               # 公共样式
-├── pages/
-│   └── resource/                   # 数据（你主要操作的地方）
-│       ├── folders.json            # 图集索引（必须维护）
-│       └── 迎新晚会/                # 一个图集 = 一个文件夹
-│           ├── 迎新晚会.json         # 图集元数据（必须与文件夹同名）
-│           ├── 1.jpg
-│           └── 2.jpg
-├── pages/
-│   └── image/
-│       └── logo.png                # 站点 Logo
-├── README.md                       # 本文件
-└── LICENSE
-```
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-### 数据加载原理（各页面内置脚本）
+## Expanding the ESLint configuration
 
-```javascript
-1. 读取 pages/resource/folders.json       → 获取所有图集文件夹名数组
-2. 对每个文件夹名：
-   请求 pages/resource/<文件夹>/<文件夹>.json → 获取图集元数据
-3. 取 cards[0] 作为封面卡片
-4. 图片路径拼接规则：pages/resource/<文件夹>/<cards[i].image>
-5. 详情页通过 article.html?id=<文件夹> 读取对应图集
-```
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-### 页面跳转关系
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-| 来源 | 去向 | 说明 |
-| --- | --- | --- |
-| 首页卡片 / 特色卡片 | `article.html?id=<文件夹>` | 进入图集详情页 |
-| 导航栏「集体相册」 | `schematics.html` | 进入分类相册页 |
-| 集体相册卡片 | `article.html?id=<文件夹>` | 进入图集详情页 |
-| 导航栏搜索 | `article.html?id=<文件夹>` | 全局搜索，跳转到首个匹配结果 |
-| 顶部头像/登录图标 | `login.html` | 登录页 |
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
----
-
-## 二、添加新图集（完整步骤）
-
-### 第 1 步：在 `pages/resource/` 下新建文件夹
-
-```javascript
-pages/resource/迎新晚会/
-```
-
-> **命名建议**：使用中文短名或英文短横线，避免空格和特殊字符。
-
-### 第 2 步：放入照片文件
-
-```javascript
-pages/resource/迎新晚会/1.jpg
-pages/resource/迎新晚会/2.jpg
-pages/resource/迎新晚会/3.png
-```
-
-> ⚠️ **注意**：图片文件名不要包含中文（避免编码问题），建议用数字或英文命名。
-
-### 第 3 步：创建图集元数据 JSON 文件
-
-**文件名必须与文件夹名完全一致**（包括大小写），后缀为 `.json`：
-
-```javascript
-pages/resource/迎新晚会/迎新晚会.json
-```
-
-**完整模板**（复制后按需修改）：
-
-```json
-{
-  "title": "迎新晚会",
-  "category": "明德",
-  "categories": ["明德"],
-  "categoryColors": ["#B22222"],
-  "intro": "2026年迎新晚会精彩瞬间。",
-  "bilibili": "",
-  "cards": [
-    {
-      "title": "开场舞",
-      "intro": "精彩的舞蹈表演",
-      "image": "1.jpg"
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
     },
-    {
-      "title": "合唱环节",
-      "intro": "全体新生合唱校歌",
-      "image": "2.jpg"
-    }
-  ],
-  "content": "<h2>迎新晚会</h2><p>记录美好时刻。</p>"
-}
+  },
+])
 ```
 
-**空白模板**：
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```json
-{
-  "title": "",
-  "category": "",
-  "categories": [""],
-  "categoryColors": [""],
-  "intro": "",
-  "cards": [
-    {
-      "title": "",
-      "intro": "",
-      "image": ""
-    }
-  ],
-  "content": ""
-}
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
-
-### 第 4 步：注册到 `pages/resource/folders.json`
-
-打开 `pages/resource/folders.json`，将新文件夹名加入数组：
-
-```json
-[
-  "迎新晚会",
-  "秋季运动会",
-  "校园风光"
-]
-```
-
-> ⚠️ **这是最容易忘记的一步！** 不加进 `folders.json`，网页不会加载该图集。
-
-### 第 5 步：让它出现在对应页面
-
-| 页面 | 显示规则 |
-| --- | --- |
-| **首页** | 所有图集都会出现在「全部照片」流中；前 4 个图集会作为右侧「特色卡片」展示 |
-| **集体相册页** | 图集会按 `category` / `categories` 显示分类标签；同时按标题/简介中的关键词自动归入侧边栏「明德 / 博学 / 笃行 / 尽美」子分类 |
-
----
-
-## 三、字段说明
-
-### 顶层字段
-
-| 字段 | 必填 | 说明 | 示例 |
-| --- | --- | --- | --- |
-| `title` | ✅ | 图集标题，显示在详情页和卡片上 | `"迎新晚会"` |
-| `category` | ✅ | 主分类 | `"明德"` |
-| `categories` | ✅ | 分类数组，可填多个 | `["明德"]` |
-| `categoryColors` | ❌ | 对应分类的标签颜色，不填则自动分配 | `["#B22222"]` |
-| `intro` | ✅ | 一句话简介，显示在卡片底部 | `"2026年迎新晚会精彩瞬间"` |
-| `id` | ❌ | 自定义图集 ID，不填则使用文件夹名 | `"graduation-2026"` |
-| `url` | ❌ | 若填写，卡片点击后直接跳转该外链而非详情页 | `"https://..."` |
-| `bilibili` | ❌ | B 站视频链接，详情页会显示「相关视频」嵌入区 | `"https://www.bilibili.com/video/..."` |
-| `content` | ❌ | 详情页正文介绍，支持 HTML 标签 | `"<h2>毕业快乐</h2>"` |
-
-### `cards[]` 子字段
-
-| 字段 | 必填 | 说明 |
-| --- | --- | --- |
-| `title` | ✅ | 单张照片标题 |
-| `intro` | ❌ | 单张照片说明文字 |
-| `image` | ✅ | 照片文件名（相对于当前文件夹） |
-
----
-
-## 四、分类列表
-
-卡片配色表预置在 `components/skeleton-card.js` 和 `pages/html/article.html` 的 `CATEGORY_COLORS` 中：
-
-| 分类名 | 默认颜色 |
-| --- | --- |
-| `明德` | `#B22222` |
-| `博学` | `#2196F3` |
-| `笃行` | `#4CAF50` |
-| `尽美` | `#FF9800` |
-
-- `category` 和 `categories` 字段填写上述分类名即可
-- 颜色会自动分配，也可以在 `categoryColors` 中自行指定十六进制色值
-- 如果填了不在列表中的分类名，系统会 **自动生成稳定颜色**
-
-### 集体相册页的子分类（关键词自动归组）
-
-在 `schematics.html` 中，集体相册按以下关键词自动归组到侧边栏分类：
-
-| 子分类 | 匹配关键词 |
-| --- | --- |
-| 明德 | `明德` |
-| 博学 | `博学` |
-| 笃行 | `笃行` |
-| 尽美 | `尽美` |
-
-无需在 JSON 中额外填写，系统会根据图集标题和简介自动匹配。
-
----
-
-## 五、编辑现有图集
-
-1. 找到 `pages/resource/<图集文件夹>/<图集名>.json`
-2. 修改 JSON 内容（增删 `cards`、改文字等）
-3. 如果添加了新照片文件，确保 `image` 字段指向正确文件名
-4. 提交更改
-
----
-
-## 六、删除图集
-
-1. 删除 `pages/resource/` 下对应的整个文件夹
-2. 打开 `pages/resource/folders.json`，从数组中移除该文件夹名
-3. 提交更改
-
----
-
-## 七、注意事项（重要）
-
-| 事项 | 说明 |
-| --- | --- |
-| ⚠️ JSON 必须合法 | 逗号不能多也不能少，引号必须是双引号。推荐用 VS Code 编辑，自带 JSON 校验 |
-| ⚠️ 文件名必须匹配 | JSON 文件名必须与文件夹名 **完全一致**，否则 `fetch()` 会 404 |
-| ⚠️ 图片路径 | `cards[].image` 只写文件名，系统自动拼接为 `pages/resource/<文件夹>/<文件名>` |
-| ⚠️ 图片缺失 | 图片加载失败时会显示占位图，不影响页面运行 |
-| ⚠️ 不要改动组件引用 | 页面通过 `../../components/*.js` 加载 Web Components，移动或重命名组件会导致白屏 |
-| ✅ 图片压缩 | 建议上传前压缩图片，避免仓库体积过大 |
-| ✅ 同步 folders.json | 每次增删图集后，**务必** 同步更新 `folders.json` |
-
----
-
-## 八、本地预览方法
-
-由于项目使用 `fetch()` 加载本地 JSON，直接双击 HTML 文件会因浏览器安全限制（CORS）无法加载数据。需要启动本地服务器：
-
-### VS Code 插件
-
-安装 `Live Server` 插件 → 右键 `pages/html/index.html` → `Open with Live Server`
-
-### 命令行
-
-```bash
-# 在项目根目录执行（Python 3）
-python -m http.server 8000
-# 然后浏览器访问 http://localhost:8000/pages/html/index.html
-```
-
----
-
-## 九、Git 协作流程
-
-1. 从最新 `main` 分支拉取代码
-2. 创建自己的分支： `git switch -c feature/add-<图集名>`
-3. 按上述步骤添加 / 修改图集
-4. 提交并推送：
-
-```bash
-git add .
-git commit -m "feat: 添加迎新晚会图集"
-git push -u origin feature/add-迎新晚会
-```
-
-5. 在 GitHub 上发起 Pull Request，等待 Review 后合并
-
-### 提交信息规范
-
-| 类型 | 说明 | 示例 |
-| --- | --- | --- |
-| `feat` | 新增图集 | `feat: 添加迎新晚会图集` |
-| `update` | 更新已有图集 | `update: 补充运动会图集照片` |
-| `fix` | 修复数据问题 | `fix: 修正文件夹名大小写` |
-| `docs` | 仅文档变更 | `docs: 更新协作指南` |
-
-如有疑问，请在仓库提 Issue 或联系项目维护者。
