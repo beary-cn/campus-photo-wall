@@ -658,7 +658,7 @@ class McNavbar extends HTMLElement {
 
                     <ul class="nav-links">
                         <li><a href="index.html" target="_self">主页</a></li>
-                        <li><a href="schematics.html" target="_self">集体相册</a></li>
+                        <li><a href="schematics.html" target="_self">活动分类</a></li>
                     </ul>
                 </div>
 
