@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的发布 - 校园活动照片墙</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="article.css">
+    <script src="../../components/mc-navbar.js" defer></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f0f2f5;
+            color: #1a1a2e;
+        }
+
+        .page-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .btn-new {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-new:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+        }
+
+        .albums-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .album-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .album-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+
+        .album-cover {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #f0f2f5;
+        }
+
+        .album-body {
+            padding: 16px;
+        }
+
+        .album-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .album-category {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .album-intro {
+            font-size: 13px;
+            color: #767676;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .album-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .album-btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .album-btn.edit {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .album-btn.edit:hover {
+            background: #bbdefb;
+        }
+
+        .album-btn.delete {
+            background: #fde8e8;
+            color: #c0392b;
+        }
+
+        .album-btn.delete:hover {
+            background: #fadbd8;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #767676;
+        }
+
+        .empty-state .material-icons {
+            font-size: 48px;
+            margin-bottom: 12px;
+            color: #ccc;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* 发布弹窗 */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #767676;
+            padding: 4px;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e3e5e7;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #333;
+            background: #fafafa;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            font-family: inherit;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+        }
+
+        .cover-preview {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 10px;
+            background: #f0f2f5;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .cover-preview.show {
+            display: block;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 24px;
+            border-top: 1px solid #f0f2f5;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: #f0f2f5;
+            color: #555;
+        }
+
+        .btn-secondary:hover {
+            background: #e3e5e7;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 10001;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success { background: #e8f5e9; color: #2e7d32; }
+        .toast.error { background: #fde8e8; color: #c0392b; }
+
+        @media (max-width: 768px) {
+            .page-container {
+                padding: 16px;
+            }
+            .albums-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <mc-navbar></mc-navbar>
+
+    <div class="page-container">
+        <div class="page-header">
+            <div class="page-title">我的发布</div>
+            <button class="btn-new" id="newPostBtn">
+                <span class="material-icons">add</span>
+                新建活动
+            </button>
+        </div>
+
+        <div class="albums-grid" id="albumsGrid"></div>
+    </div>
+
+    <!-- 发布弹窗 -->
+    <div class="modal-overlay" id="postModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">新建活动</div>
+                <button class="modal-close" id="modalClose">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editAlbumId">
+                <div class="form-group">
+                    <label class="form-label">活动标题 *</label>
+                    <input class="form-input" type="text" id="postTitle" placeholder="输入活动标题">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">分类 *</label>
+                    <select class="form-select" id="postCategory">
+                        <option value="明德">明德</option>
+                        <option value="博学">博学</option>
+                        <option value="笃行">笃行</option>
+                        <option value="尽美">尽美</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">简介</label>
+                    <textarea class="form-textarea" id="postIntro" placeholder="简短介绍活动内容"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">封面图片</label>
+                    <input type="file" id="postCover" accept="image/*">
+                    <img class="cover-preview" id="coverPreview" alt="封面预览">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modalCancel">取消</button>
+                <button class="btn btn-primary" id="modalSubmit">发布</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentUser = null;
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        async function loadUser() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('未登录');
+                const result = await res.json();
+                currentUser = result.data;
+            } catch (e) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('mc_user');
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function loadMyAlbums() {
+            const token = localStorage.getItem('token');
+            const grid = document.getElementById('albumsGrid');
+            grid.innerHTML = '<div class="empty-state"><span class="material-icons">hourglass_empty</span><p>加载中...</p></div>';
+
+            try {
+                const res = await fetch(`${API_BASE}/albums?userId=${currentUser.id}&limit=100`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await res.json();
+                const albums = result.data || [];
+
+                if (albums.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <span class="material-icons">collections</span>
+                            <p>还没有发布过活动</p>
+                            <button class="btn-new" onclick="document.getElementById('newPostBtn').click()">
+                                <span class="material-icons">add</span> 新建活动
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const categoryColors = {
+                    '明德': '#B22222',
+                    '博学': '#2196F3',
+                    '笃行': '#4CAF50',
+                    '尽美': '#FF9800'
+                };
+
+                grid.innerHTML = albums.map(album => {
+                    const color = categoryColors[album.category] || '#767676';
+                    const cover = album.coverImage || 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400';
+                    return `
+                        <div class="album-card">
+                            <img class="album-cover" src="${cover}" alt="${album.title}" onerror="this.src='https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400'">
+                            <div class="album-body">
+                                <div class="album-title">${album.title}</div>
+                                <span class="album-category" style="background:${color}15;color:${color}">${album.category}</span>
+                                <div class="album-intro">${album.intro || '暂无简介'}</div>
+                                <div class="album-actions">
+                                    <button class="album-btn edit" data-id="${album.id}" data-folder="${album.folder}">
+                                        <span class="material-icons" style="font-size:14px">edit</span> 编辑
+                                    </button>
+                                    <button class="album-btn delete" data-id="${album.id}">
+                                        <span class="material-icons" style="font-size:14px">delete</span> 删除
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // 绑定编辑事件
+                grid.querySelectorAll('.album-btn.edit').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const folder = btn.dataset.folder;
+                        window.open(`article.html?folder=${encodeURIComponent(folder)}`, '_blank');
+                    });
+                });
+
+                // 绑定删除事件
+                grid.querySelectorAll('.album-btn.delete').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        if (!confirm('确定要删除这个活动吗？此操作不可撤销。')) return;
+                        const id = btn.dataset.id;
+                        try {
+                            const res = await fetch(`${API_BASE}/albums/${id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            if (res.ok) {
+                                showToast('删除成功');
+                                loadMyAlbums();
+                            } else {
+                                const result = await res.json();
+                                showToast(result.error || '删除失败', 'error');
+                            }
+                        } catch (e) {
+                            showToast('网络错误', 'error');
+                        }
+                    });
+                });
+            } catch (e) {
+                grid.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>加载失败</p></div>';
+            }
+        }
+
+        // 弹窗控制
+        const modal = document.getElementById('postModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const editAlbumId = document.getElementById('editAlbumId');
+        const postTitle = document.getElementById('postTitle');
+        const postCategory = document.getElementById('postCategory');
+        const postIntro = document.getElementById('postIntro');
+        const postCover = document.getElementById('postCover');
+        const coverPreview = document.getElementById('coverPreview');
+
+        function openModal(isEdit = false) {
+            modalTitle.textContent = isEdit ? '编辑活动' : '新建活动';
+            if (!isEdit) {
+                editAlbumId.value = '';
+                postTitle.value = '';
+                postCategory.value = '明德';
+                postIntro.value = '';
+                postCover.value = '';
+                coverPreview.src = '';
+                coverPreview.classList.remove('show');
+            }
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+        }
+
+        document.getElementById('newPostBtn').addEventListener('click', () => openModal(false));
+        document.getElementById('modalClose').addEventListener('click', closeModal);
+        document.getElementById('modalCancel').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // 封面预览
+        postCover.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) {
+                coverPreview.classList.remove('show');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                coverPreview.src = ev.target.result;
+                coverPreview.classList.add('show');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 提交
+        document.getElementById('modalSubmit').addEventListener('click', async () => {
+            const title = postTitle.value.trim();
+            const category = postCategory.value;
+            const intro = postIntro.value.trim();
+
+            if (!title) {
+                showToast('请输入活动标题', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('modalSubmit');
+            btn.disabled = true;
+            btn.textContent = '发布中...';
+
+            try {
+                const token = localStorage.getItem('token');
+                let coverImage = '';
+
+                // 上传封面
+                if (postCover.files[0]) {
+                    const reader = new FileReader();
+                    const base64 = await new Promise((resolve) => {
+                        reader.onload = (ev) => resolve(ev.target.result);
+                        reader.readAsDataURL(postCover.files[0]);
+                    });
+
+                    const folder = 'user_' + currentUser.id + '_' + Date.now();
+                    const uploadRes = await fetch(`${API_BASE}/upload`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            albumFolder: folder,
+                            filename: 'cover.jpg',
+                            base64: base64
+                        })
+                    });
+                    const uploadResult = await uploadRes.json();
+                    if (uploadResult.data?.url) {
+                        coverImage = uploadResult.data.url;
+                    }
+                }
+
+                const folder = 'post_' + Date.now();
+                const res = await fetch(`${API_BASE}/albums`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        folder,
+                        title,
+                        category,
+                        intro,
+                        coverImage,
+                        categoriesJson: JSON.stringify([category]),
+                        categoryColorsJson: JSON.stringify({
+                            '明德': '#B22222',
+                            '博学': '#2196F3',
+                            '笃行': '#4CAF50',
+                            '尽美': '#FF9800'
+                        })
+                    })
+                });
+
+                if (res.ok) {
+                    showToast('发布成功');
+                    closeModal();
+                    loadMyAlbums();
+                } else {
+                    const result = await res.json();
+                    showToast(result.error || '发布失败', 'error');
+                }
+            } catch (e) {
+                showToast('网络错误', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '发布';
+            }
+        });
+
+        // 初始化
+        (async () => {
+            await loadUser();
+            await loadMyAlbums();
+        })();
+    </script>
+</body>
+</html>

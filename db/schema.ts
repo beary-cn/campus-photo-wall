@@ -11,7 +11,9 @@ import {
 
 export const users = mysqlTable("users", {
   id: serial("id").primaryKey(),
-  unionId: varchar("unionId", { length: 255 }).notNull().unique(),
+  unionId: varchar("unionId", { length: 255 }).unique(),
+  username: varchar("username", { length: 255 }).unique(),
+  passwordHash: varchar("passwordHash", { length: 255 }),
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 320 }),
   avatar: text("avatar"),
@@ -30,6 +32,7 @@ export type InsertUser = typeof users.$inferInsert;
 // ==================== 图集 ====================
 export const albums = mysqlTable("albums", {
   id: serial("id").primaryKey(),
+  userId: bigint("userId", { mode: "number", unsigned: true }),
   folder: varchar("folder", { length: 255 }).notNull().unique(),
   title: varchar("title", { length: 255 }).notNull(),
   category: varchar("category", { length: 64 }).notNull().default(""),

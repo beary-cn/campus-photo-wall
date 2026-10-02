@@ -13,6 +13,42 @@ class McNavbar extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         this.user = null;
         this.render();
+        this.checkAuth();
+    }
+
+    // 异步验证登录状态
+    async checkAuth() {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const res = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const result = await res.json();
+                    const user = result.data;
+                    localStorage.setItem('mc_user', JSON.stringify({
+                        id: user.id,
+                        name: user.name,
+                        username: user.username,
+                        avatar: user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`,
+                        role: user.role,
+                        isLoggedIn: true
+                    }));
+                } else {
+                    // token 失效，清除
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('mc_user');
+                }
+            } catch (e) {
+                // 网络错误，保留现有 localStorage 数据
+            }
+        }
+        const newUser = this.getUser();
+        if (JSON.stringify(newUser) !== JSON.stringify(this.user)) {
+            this.user = newUser;
+            this.render();
+        }
     }
 
     attributeChangedCallback() {
@@ -90,6 +126,7 @@ class McNavbar extends HTMLElement {
 
     // 退出登录
     logout() {
+        localStorage.removeItem('token');
         localStorage.removeItem('mc_user');
         window.location.reload();
     }
@@ -125,7 +162,16 @@ class McNavbar extends HTMLElement {
                         </div>
                     </div>
                     <div class="user-dropdown-divider"></div>
-                    <a href="login.html" class="user-dropdown-item" target="_self" onclick="event.preventDefault(); localStorage.removeItem('mc_user'); window.location.reload();">
+                    <a href="profile.html" class="user-dropdown-item" target="_self">
+                        <span class="material-icons">person</span>
+                        <span>个人主页</span>
+                    </a>
+                    <a href="my-posts.html" class="user-dropdown-item" target="_self">
+                        <span class="material-icons">collections</span>
+                        <span>我的发布</span>
+                    </a>
+                    <div class="user-dropdown-divider"></div>
+                    <a href="login.html" class="user-dropdown-item" target="_self" onclick="event.preventDefault(); localStorage.removeItem('token'); localStorage.removeItem('mc_user'); window.location.reload();">
                         <span class="material-icons">logout</span>
                         <span>退出登录</span>
                     </a>
@@ -827,35 +873,21 @@ class McNavbar extends HTMLElement {
 
     async loadSearchData() {
         try {
-            // 根据当前页面路径确定 resource 路径
-            let resourcePath = '/pages/resource';
-            const currentPath = window.location.pathname;
-            if (currentPath.includes('/pages/html/')) {
-                resourcePath = '../resource';
-            } else if (currentPath.includes('/pages/')) {
-                resourcePath = './resource';
-            }
-
-            const response = await fetch(`${resourcePath}/folders.json`);
+            const response = await fetch('/api/albums?limit=100');
             if (!response.ok) return [];
-            const folders = await response.json();
+            const result = await response.json();
+            const albums = result.data || [];
 
             const data = [];
-            for (const folder of folders) {
-                try {
-                    const res = await fetch(`${resourcePath}/${folder}/${folder}.json`);
-                    if (!res.ok) continue;
-                    const json = await res.json();
-                    if (json.cards && json.cards[0]) {
-                        data.push({
-                            ...json.cards[0],
-                            folder: folder,
-                            category: json.category || json.categories?.[0] || '其他',
-                            image: `${resourcePath}/${folder}/${json.cards[0].image}`
-                        });
-                    }
-                } catch (e) {
-                    console.warn('加载搜索数据失败:', folder);
+            for (const album of albums) {
+                if (album.coverImage) {
+                    data.push({
+                        title: album.title,
+                        intro: album.intro || '',
+                        folder: album.folder,
+                        category: album.category,
+                        image: album.coverImage
+                    });
                 }
             }
             return data;

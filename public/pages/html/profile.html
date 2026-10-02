@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人主页 - 校园活动照片墙</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="article.css">
+    <script src="../../components/mc-navbar.js" defer></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f0f2f5;
+            color: #1a1a2e;
+        }
+
+        .profile-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .profile-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #f0f2f5;
+            margin-bottom: 16px;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .profile-username {
+            font-size: 14px;
+            color: #767676;
+            margin-top: 4px;
+        }
+
+        .profile-role {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .profile-role.admin {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .profile-role.user {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .form-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-section-title .material-icons {
+            font-size: 20px;
+            color: #767676;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e3e5e7;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #333;
+            background: #fafafa;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+        }
+
+        .avatar-options {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .avatar-option {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: border-color 0.2s, transform 0.2s;
+            object-fit: cover;
+        }
+
+        .avatar-option:hover {
+            transform: scale(1.1);
+        }
+
+        .avatar-option.selected {
+            border-color: #1a73e8;
+        }
+
+        .avatar-upload {
+            margin-top: 12px;
+        }
+
+        .avatar-upload input[type="file"] {
+            display: none;
+        }
+
+        .avatar-upload-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: #f0f2f5;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #555;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .avatar-upload-label:hover {
+            background: #e3e5e7;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 24px;
+            background: #f0f2f5;
+            color: #555;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #e3e5e7;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 10000;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .toast.error {
+            background: #fde8e8;
+            color: #c0392b;
+        }
+
+        @media (max-width: 768px) {
+            .profile-container {
+                padding: 16px;
+            }
+            .profile-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <mc-navbar></mc-navbar>
+
+    <div class="profile-container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <img class="profile-avatar" id="avatarPreview" src="" alt="头像">
+                <div class="profile-name" id="displayName">加载中...</div>
+                <div class="profile-username" id="displayUsername"></div>
+                <div class="profile-role" id="displayRole"></div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">
+                    <span class="material-icons">person</span>
+                    基本信息
+                </div>
+                <div class="form-group">
+                    <label class="form-label">昵称</label>
+                    <input class="form-input" type="text" id="nameInput" placeholder="输入昵称">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">头像</label>
+                    <div class="avatar-options" id="avatarOptions">
+                        <img class="avatar-option" src="https://api.dicebear.com/7.x/initials/svg?seed=A&backgroundColor=b6e3f4" data-seed="A">
+                        <img class="avatar-option" src="https://api.dicebear.com/7.x/initials/svg?seed=B&backgroundColor=c0aede" data-seed="B">
+                        <img class="avatar-option" src="https://api.dicebear.com/7.x/initials/svg?seed=C&backgroundColor=d1d4f9" data-seed="C">
+                        <img class="avatar-option" src="https://api.dicebear.com/7.x/initials/svg?seed=D&backgroundColor=ffd5dc" data-seed="D">
+                        <img class="avatar-option" src="https://api.dicebear.com/7.x/initials/svg?seed=E&backgroundColor=ffdfbf" data-seed="E">
+                    </div>
+                    <div class="avatar-upload">
+                        <label class="avatar-upload-label">
+                            <span class="material-icons">upload</span>
+                            上传自定义头像
+                            <input type="file" id="avatarFile" accept="image/*">
+                        </label>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn-primary" id="saveProfileBtn">
+                        <span class="material-icons">save</span>
+                        保存信息
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">
+                    <span class="material-icons">lock</span>
+                    修改密码
+                </div>
+                <div class="form-group">
+                    <label class="form-label">旧密码</label>
+                    <input class="form-input" type="password" id="oldPassword" placeholder="输入旧密码">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">新密码</label>
+                    <input class="form-input" type="password" id="newPassword" placeholder="至少6位">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">确认新密码</label>
+                    <input class="form-input" type="password" id="confirmPassword" placeholder="再次输入新密码">
+                </div>
+                <div class="form-actions">
+                    <button class="btn-primary" id="changePasswordBtn">
+                        <span class="material-icons">vpn_key</span>
+                        修改密码
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentUser = null;
+        let selectedAvatar = null;
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        async function loadUser() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('未登录');
+
+                const result = await res.json();
+                currentUser = result.data;
+
+                document.getElementById('displayName').textContent = currentUser.name || currentUser.username;
+                document.getElementById('displayUsername').textContent = '@' + currentUser.username;
+                document.getElementById('nameInput').value = currentUser.name || '';
+
+                const roleEl = document.getElementById('displayRole');
+                roleEl.textContent = currentUser.role === 'admin' ? '管理员' : '普通用户';
+                roleEl.className = 'profile-role ' + currentUser.role;
+
+                const avatarUrl = currentUser.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(currentUser.name)}`;
+                document.getElementById('avatarPreview').src = avatarUrl;
+                selectedAvatar = avatarUrl;
+
+                // 高亮当前头像
+                document.querySelectorAll('.avatar-option').forEach(img => {
+                    if (avatarUrl.includes(img.dataset.seed)) {
+                        img.classList.add('selected');
+                    }
+                });
+            } catch (e) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('mc_user');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // 头像选择
+        document.getElementById('avatarOptions').addEventListener('click', (e) => {
+            if (e.target.classList.contains('avatar-option')) {
+                document.querySelectorAll('.avatar-option').forEach(img => img.classList.remove('selected'));
+                e.target.classList.add('selected');
+                selectedAvatar = e.target.src;
+                document.getElementById('avatarPreview').src = selectedAvatar;
+            }
+        });
+
+        // 上传自定义头像
+        document.getElementById('avatarFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                selectedAvatar = ev.target.result;
+                document.getElementById('avatarPreview').src = selectedAvatar;
+                document.querySelectorAll('.avatar-option').forEach(img => img.classList.remove('selected'));
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 保存基本信息
+        document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('saveProfileBtn');
+            btn.disabled = true;
+
+            try {
+                const token = localStorage.getItem('token');
+                const name = document.getElementById('nameInput').value.trim();
+
+                const res = await fetch(`${API_BASE}/auth/me`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name, avatar: selectedAvatar })
+                });
+
+                if (res.ok) {
+                    showToast('保存成功');
+                    // 更新本地存储
+                    const stored = JSON.parse(localStorage.getItem('mc_user') || '{}');
+                    stored.name = name;
+                    stored.avatar = selectedAvatar;
+                    localStorage.setItem('mc_user', JSON.stringify(stored));
+                } else {
+                    const result = await res.json();
+                    showToast(result.error || '保存失败', 'error');
+                }
+            } catch (e) {
+                showToast('网络错误', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // 修改密码
+        document.getElementById('changePasswordBtn').addEventListener('click', async () => {
+            const oldPassword = document.getElementById('oldPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!oldPassword || !newPassword) {
+                showToast('请填写完整', 'error');
+                return;
+            }
+            if (newPassword.length < 6) {
+                showToast('新密码至少6位', 'error');
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                showToast('两次密码不一致', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('changePasswordBtn');
+            btn.disabled = true;
+
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_BASE}/auth/change-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ oldPassword, newPassword })
+                });
+
+                if (res.ok) {
+                    showToast('密码修改成功');
+                    document.getElementById('oldPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                } else {
+                    const result = await res.json();
+                    showToast(result.error || '修改失败', 'error');
+                }
+            } catch (e) {
+                showToast('网络错误', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        loadUser();
+    </script>
+</body>
+</html>
