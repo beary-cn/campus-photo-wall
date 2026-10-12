@@ -6,11 +6,9 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "./router";
 import { createContext } from "./context";
 import { env } from "./lib/env";
-import { createOAuthCallbackHandler } from "./kimi/auth";
-import { Paths } from "@contracts/constants";
 import { getDb } from "./queries/connection";
 import { albums, albumPhotos, users } from "@db/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, like, or } from "drizzle-orm";
 import { writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 import bcrypt from "bcryptjs";
@@ -215,15 +213,15 @@ app.get("/api/albums", async (c) => {
   const limit = parseInt(c.req.query("limit") || "50", 10);
   const offset = parseInt(c.req.query("offset") || "0", 10);
 
-  const conditions: (ReturnType<typeof sql>)[] = [];
-  if (category) conditions.push(sql`${albums.category} = ${category}`);
-  if (search) conditions.push(sql`(${albums.title} LIKE ${"%" + search + "%"} OR ${albums.intro} LIKE ${"%" + search + "%"})`);
-  if (userId) conditions.push(sql`${albums.userId} = ${parseInt(userId, 10)}`);
+  const conditions = [];
+  if (category) conditions.push(eq(albums.category, category));
+  if (search) conditions.push(or(like(albums.title, "%" + search + "%"), like(albums.intro, "%" + search + "%")));
+  if (userId) conditions.push(eq(albums.userId, parseInt(userId, 10)));
 
   const rows = await db
     .select()
     .from(albums)
-    .where(conditions.length > 0 ? sql.join(conditions, sql` AND `) : undefined)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(desc(albums.createdAt))
     .limit(limit)
     .offset(offset);
@@ -385,7 +383,6 @@ app.post("/api/upload", async (c) => {
 });
 
 // ==================== tRPC ====================
-app.get(Paths.oauthCallback, createOAuthCallbackHandler());
 app.use("/api/trpc/*", async (c) => {
   return fetchRequestHandler({
     endpoint: "/api/trpc",
