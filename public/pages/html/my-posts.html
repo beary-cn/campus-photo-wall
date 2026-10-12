@@ -490,7 +490,7 @@
                 grid.querySelectorAll('.album-btn.edit').forEach(btn => {
                     btn.addEventListener('click', () => {
                         const folder = btn.dataset.folder;
-                        window.open(`article.html?folder=${encodeURIComponent(folder)}`, '_blank');
+                        window.open(`article.html?id=${encodeURIComponent(folder)}`, '_blank');
                     });
                 });
 
