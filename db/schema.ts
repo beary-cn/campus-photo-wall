@@ -53,7 +53,7 @@ export type Album = typeof albums.$inferSelect;
 export type InsertAlbum = typeof albums.$inferInsert;
 
 // ==================== 照片（图集内的卡片）====================
-export const albumPhotos = mysqlTable("albumPhotos", {
+export const albumPhotos = mysqlTable("albumphotos", {
   id: serial("id").primaryKey(),
   albumId: bigint("albumId", { mode: "number", unsigned: true })
     .notNull(),
