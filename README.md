@@ -39,7 +39,7 @@
 │       ├── html/               # HTML 页面
 │       │   ├── index.html      # 照片墙首页
 │       │   ├── article.html    # 活动详情页
-│       │   ├── schematics.html # 集体相册
+│       │   ├── schematics.html # 活动分类
 │       │   ├── login.html      # 登录/注册页
 │       │   ├── profile.html    # 个人主页（修改昵称/头像/密码）
 │       │   └── my-posts.html   # 我的发布（管理已发布活动）

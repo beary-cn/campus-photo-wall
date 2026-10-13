@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="../../components/mc-navbar.js"></script>
     <link rel="stylesheet" href="index.css">
-    <title>校园活动照片墙 - 集体相册</title>
+    <title>校园活动照片墙 - 活动分类</title>
     <style>
         /* ========== 基础变量 ========== */
         :root {
@@ -784,7 +784,7 @@
     </div>
 
     <script>
-        // ==================== 集体相册页面逻辑 ====================
+        // ==================== 活动分类页面逻辑 ====================
 
         const resourcePath = '../resource';
         const ITEMS_PER_PAGE = 20;
@@ -875,7 +875,7 @@
 
                 const category = data.category || '';
                 const categories = data.categories || [];
-                const isSchematic = category === '集体相册' || categories.includes('集体相册');
+                const isSchematic = category === '活动分类' || categories.includes('活动分类');
 
                 // 侧边栏子分类：所有图集都显示，按关键词归类
                 if (data.cards && data.cards.length > 0) {
@@ -971,7 +971,7 @@
             updateResultInfo();
         }
 
-        // ========== 渲染集体相册 ==========
+        // ========== 渲染活动分类 ==========
         function renderSchematics() {
             const grid = document.getElementById('masonryGrid');
             const loadMore = document.getElementById('loadMore');
