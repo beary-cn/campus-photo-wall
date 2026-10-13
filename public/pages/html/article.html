@@ -317,6 +317,23 @@
       font-size: 12px;
     }
 
+    /* 预览模式提示条 */
+    .preview-banner {
+      display: none;
+      background: #fff7e0;
+      color: #8a6d1a;
+      border: 1px solid #f0dfae;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      align-items: center;
+      gap: 8px;
+    }
+    .preview-banner.show {
+      display: flex;
+    }
+
     .loading-container {
       text-align: center;
       padding: 60px 20px;
@@ -361,6 +378,7 @@
       .bilibili-embed iframe { height: 240px; }
     }
   </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -390,6 +408,11 @@
     </aside>
 
     <article class="article-container">
+      <div class="preview-banner" id="previewBanner">
+        <span class="material-icons" style="font-size:18px">visibility</span>
+        预览模式：此内容尚未发布，仅你可见。
+      </div>
+
       <div id="article-loading" class="loading-container">
         <div class="loading-spinner"></div>
         <p>正在加载文章...</p>
@@ -474,6 +497,40 @@
       const contentWrapper = document.getElementById('article-content-wrapper');
       const errorEl = document.getElementById('article-error');
 
+      // ========== 预览模式：数据来自 publish.html 的 sessionStorage ==========
+      if (urlParams.get('preview') === '1') {
+        loadingEl.style.display = 'none';
+        const raw = sessionStorage.getItem('preview_article');
+        if (!raw) {
+          errorEl.style.display = 'block';
+          document.getElementById('error-message').textContent = '没有可预览的内容，请从发布页进入';
+          return;
+        }
+        try {
+          const data = JSON.parse(raw);
+          document.getElementById('previewBanner').classList.add('show');
+          albumData = normalizeAlbum({
+            title: data.title,
+            category: data.category,
+            categoriesJson: JSON.stringify(data.categoriesJson || [data.category]),
+            categoryColorsJson: JSON.stringify(data.categoryColorsJson || {}),
+            intro: data.intro,
+            bilibili: data.bilibili,
+            content: data.content,
+            folder: 'preview',
+            photos: data.coverImage
+              ? [{ title: data.title, intro: data.intro, imagePath: data.coverImage }]
+              : []
+          });
+          renderArticle(albumData);
+          contentWrapper.style.display = 'block';
+        } catch (e) {
+          errorEl.style.display = 'block';
+          document.getElementById('error-message').textContent = '预览数据解析失败';
+        }
+        return;
+      }
+
       if (!articleId) {
         loadingEl.style.display = 'none';
         errorEl.style.display = 'block';
@@ -493,7 +550,7 @@
         console.error('加载文章失败:', error);
         loadingEl.style.display = 'none';
         errorEl.style.display = 'block';
-        document.getElementById('error-message').innerHTML = 
+        document.getElementById('error-message').innerHTML =
           `<strong>${error.message}</strong><br><small>请确认图集是否存在</small>`;
       }
     }
@@ -508,7 +565,7 @@
       const categoryColors = data.categoryColors || categories.map(cat => getCategoryColor(cat));
 
       document.getElementById('article-categories').innerHTML = categories.map((cat, index) => {
-        const color = categoryColors[index] || getCategoryColor(cat);
+        const color = categoryColors[cat] || categoryColors[index] || getCategoryColor(cat);
         return `<span class="article-category-tag" style="background-color: ${color};">${cat}</span>`;
       }).join('');
 
@@ -519,7 +576,11 @@
       } else if (card.intro) {
         let html = `<p>${card.intro}</p>`;
         if (card.image) {
-          html += `<img src="${resourcePath}/${articleId}/${card.image}" alt="${card.title}" />`;
+          // 绝对路径（/uploads/... 或 http）直接使用，相对路径才拼 resourcePath
+          const src = /^(https?:)?\//.test(card.image)
+            ? card.image
+            : `${resourcePath}/${articleId}/${card.image}`;
+          html += `<img src="${src}" alt="${card.title}" />`;
         }
         if (data.bilibili) {
           const bvid = data.bilibili.replace(/.*BV/, 'BV').replace(/\/.*/, '');
@@ -536,7 +597,7 @@
 
       const tagsContainer = document.getElementById('article-tags');
       tagsContainer.innerHTML = categories.map((tag, index) => {
-        const color = categoryColors[index] || getCategoryColor(tag);
+        const color = categoryColors[tag] || categoryColors[index] || getCategoryColor(tag);
         return `<span class="tag" style="background-color: ${color}20; color: ${color};">${tag}</span>`;
       }).join('');
 

@@ -6,7 +6,6 @@
     <title>我的发布 - 校园活动照片墙</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
-    <link rel="stylesheet" href="article.css">
     <script src="../../components/mc-navbar.js" defer></script>
     <style>
         body {
@@ -138,6 +137,15 @@
             transition: background 0.2s;
         }
 
+        .album-btn.view {
+            background: #f0f2f5;
+            color: #555;
+        }
+
+        .album-btn.view:hover {
+            background: #e3e5e7;
+        }
+
         .album-btn.edit {
             background: #e3f2fd;
             color: #1976d2;
@@ -173,143 +181,6 @@
             margin-bottom: 20px;
         }
 
-        /* 发布弹窗 */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            padding: 20px;
-        }
-
-        .modal-overlay.show {
-            display: flex;
-        }
-
-        .modal {
-            background: #fff;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 24px;
-            border-bottom: 1px solid #f0f2f5;
-        }
-
-        .modal-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1a1a2e;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #767676;
-            padding: 4px;
-        }
-
-        .modal-body {
-            padding: 24px;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 6px;
-        }
-
-        .form-input, .form-textarea, .form-select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #e3e5e7;
-            border-radius: 10px;
-            font-size: 14px;
-            color: #333;
-            background: #fafafa;
-            box-sizing: border-box;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            font-family: inherit;
-        }
-
-        .form-textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .form-input:focus, .form-textarea:focus, .form-select:focus {
-            outline: none;
-            border-color: #1a73e8;
-            box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
-        }
-
-        .cover-preview {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 10px;
-            background: #f0f2f5;
-            margin-top: 8px;
-            display: none;
-        }
-
-        .cover-preview.show {
-            display: block;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            padding: 16px 24px;
-            border-top: 1px solid #f0f2f5;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            transition: background 0.2s;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: #fff;
-        }
-
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
-
-        .btn-secondary {
-            background: #f0f2f5;
-            color: #555;
-        }
-
-        .btn-secondary:hover {
-            background: #e3e5e7;
-        }
-
         .toast {
             position: fixed;
             top: 20px;
@@ -340,6 +211,7 @@
             }
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <mc-navbar></mc-navbar>
@@ -354,47 +226,6 @@
         </div>
 
         <div class="albums-grid" id="albumsGrid"></div>
-    </div>
-
-    <!-- 发布弹窗 -->
-    <div class="modal-overlay" id="postModal">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title" id="modalTitle">新建活动</div>
-                <button class="modal-close" id="modalClose">
-                    <span class="material-icons">close</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="editAlbumId">
-                <div class="form-group">
-                    <label class="form-label">活动标题 *</label>
-                    <input class="form-input" type="text" id="postTitle" placeholder="输入活动标题">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">分类 *</label>
-                    <select class="form-select" id="postCategory">
-                        <option value="明德">明德</option>
-                        <option value="博学">博学</option>
-                        <option value="笃行">笃行</option>
-                        <option value="尽美">尽美</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">简介</label>
-                    <textarea class="form-textarea" id="postIntro" placeholder="简短介绍活动内容"></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">封面图片</label>
-                    <input type="file" id="postCover" accept="image/*">
-                    <img class="cover-preview" id="coverPreview" alt="封面预览">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="modalCancel">取消</button>
-                <button class="btn btn-primary" id="modalSubmit">发布</button>
-            </div>
-        </div>
     </div>
 
     <div class="toast" id="toast"></div>
@@ -448,11 +279,14 @@
                         <div class="empty-state">
                             <span class="material-icons">collections</span>
                             <p>还没有发布过活动</p>
-                            <button class="btn-new" onclick="document.getElementById('newPostBtn').click()">
+                            <button class="btn-new" id="emptyNewBtn">
                                 <span class="material-icons">add</span> 新建活动
                             </button>
                         </div>
                     `;
+                    document.getElementById('emptyNewBtn').addEventListener('click', () => {
+                        window.location.href = 'publish.html';
+                    });
                     return;
                 }
 
@@ -474,7 +308,10 @@
                                 <span class="album-category" style="background:${color}15;color:${color}">${album.category}</span>
                                 <div class="album-intro">${album.intro || '暂无简介'}</div>
                                 <div class="album-actions">
-                                    <button class="album-btn edit" data-id="${album.id}" data-folder="${album.folder}">
+                                    <button class="album-btn view" data-folder="${album.folder}">
+                                        <span class="material-icons" style="font-size:14px">visibility</span> 查看
+                                    </button>
+                                    <button class="album-btn edit" data-folder="${album.folder}">
                                         <span class="material-icons" style="font-size:14px">edit</span> 编辑
                                     </button>
                                     <button class="album-btn delete" data-id="${album.id}">
@@ -486,11 +323,19 @@
                     `;
                 }).join('');
 
-                // 绑定编辑事件
+                // 查看：跳转到文章页
+                grid.querySelectorAll('.album-btn.view').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const folder = btn.dataset.folder;
+                        window.location.href = `article.html?id=${encodeURIComponent(folder)}`;
+                    });
+                });
+
+                // 编辑：跳转到独立发布编辑页
                 grid.querySelectorAll('.album-btn.edit').forEach(btn => {
                     btn.addEventListener('click', () => {
                         const folder = btn.dataset.folder;
-                        window.open(`article.html?id=${encodeURIComponent(folder)}`, '_blank');
+                        window.location.href = `publish.html?folder=${encodeURIComponent(folder)}`;
                     });
                 });
 
@@ -521,136 +366,9 @@
             }
         }
 
-        // 弹窗控制
-        const modal = document.getElementById('postModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const editAlbumId = document.getElementById('editAlbumId');
-        const postTitle = document.getElementById('postTitle');
-        const postCategory = document.getElementById('postCategory');
-        const postIntro = document.getElementById('postIntro');
-        const postCover = document.getElementById('postCover');
-        const coverPreview = document.getElementById('coverPreview');
-
-        function openModal(isEdit = false) {
-            modalTitle.textContent = isEdit ? '编辑活动' : '新建活动';
-            if (!isEdit) {
-                editAlbumId.value = '';
-                postTitle.value = '';
-                postCategory.value = '明德';
-                postIntro.value = '';
-                postCover.value = '';
-                coverPreview.src = '';
-                coverPreview.classList.remove('show');
-            }
-            modal.classList.add('show');
-        }
-
-        function closeModal() {
-            modal.classList.remove('show');
-        }
-
-        document.getElementById('newPostBtn').addEventListener('click', () => openModal(false));
-        document.getElementById('modalClose').addEventListener('click', closeModal);
-        document.getElementById('modalCancel').addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
-
-        // 封面预览
-        postCover.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) {
-                coverPreview.classList.remove('show');
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                coverPreview.src = ev.target.result;
-                coverPreview.classList.add('show');
-            };
-            reader.readAsDataURL(file);
-        });
-
-        // 提交
-        document.getElementById('modalSubmit').addEventListener('click', async () => {
-            const title = postTitle.value.trim();
-            const category = postCategory.value;
-            const intro = postIntro.value.trim();
-
-            if (!title) {
-                showToast('请输入活动标题', 'error');
-                return;
-            }
-
-            const btn = document.getElementById('modalSubmit');
-            btn.disabled = true;
-            btn.textContent = '发布中...';
-
-            try {
-                const token = localStorage.getItem('token');
-                let coverImage = '';
-
-                // 上传封面
-                if (postCover.files[0]) {
-                    const reader = new FileReader();
-                    const base64 = await new Promise((resolve) => {
-                        reader.onload = (ev) => resolve(ev.target.result);
-                        reader.readAsDataURL(postCover.files[0]);
-                    });
-
-                    const folder = 'user_' + currentUser.id + '_' + Date.now();
-                    const uploadRes = await fetch(`${API_BASE}/upload`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            albumFolder: folder,
-                            filename: 'cover.jpg',
-                            base64: base64
-                        })
-                    });
-                    const uploadResult = await uploadRes.json();
-                    if (uploadResult.data?.url) {
-                        coverImage = uploadResult.data.url;
-                    }
-                }
-
-                const folder = 'post_' + Date.now();
-                const res = await fetch(`${API_BASE}/albums`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        folder,
-                        title,
-                        category,
-                        intro,
-                        coverImage,
-                        categoriesJson: JSON.stringify([category]),
-                        categoryColorsJson: JSON.stringify({
-                            '明德': '#B22222',
-                            '博学': '#2196F3',
-                            '笃行': '#4CAF50',
-                            '尽美': '#FF9800'
-                        })
-                    })
-                });
-
-                if (res.ok) {
-                    showToast('发布成功');
-                    closeModal();
-                    loadMyAlbums();
-                } else {
-                    const result = await res.json();
-                    showToast(result.error || '发布失败', 'error');
-                }
-            } catch (e) {
-                showToast('网络错误', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '发布';
-            }
+        // 新建活动：跳转到独立发布页
+        document.getElementById('newPostBtn').addEventListener('click', () => {
+            window.location.href = 'publish.html';
         });
 
         // 初始化

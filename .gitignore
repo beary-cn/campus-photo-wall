@@ -40,3 +40,4 @@ build/
 coverage/
 .nyc_output/
 uploads/
+public/image/logo.png
