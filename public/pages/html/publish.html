@@ -386,6 +386,7 @@
       gap: 12px;
       margin-bottom: 12px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
     .meta-select, .meta-input {
@@ -432,6 +433,37 @@
       outline: none;
       border-color: #4a90d9;
       box-shadow: 0 0 0 3px rgba(74,144,217,0.1);
+    }
+
+    /* ========== 活动时间 ========== */
+    .time-label {
+      font-size: 13px;
+      color: #5a6b7b;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
+    }
+
+    .time-sep {
+      color: #999;
+      font-size: 13px;
+    }
+
+    .duration-hint {
+      font-size: 12px;
+      color: #4a90d9;
+      background: #f0f7ff;
+      border: 1px solid #d0e3f7;
+      border-radius: 14px;
+      padding: 4px 12px;
+      display: none;
+    }
+
+    .duration-hint.show {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
 
     /* ========== 正文编辑工具条 ========== */
@@ -593,6 +625,7 @@
     }
   </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
 
@@ -679,6 +712,20 @@
           <input class="meta-input" type="text" id="bilibiliInput" placeholder="B站视频链接（可选）" style="flex:1;min-width:200px">
         </div>
 
+        <!-- ========== 活动持续时间（可选）========== -->
+        <div class="meta-row">
+          <span class="time-label">
+            <span class="material-icons" style="font-size:16px">schedule</span> 活动时间
+          </span>
+          <input class="meta-input" type="datetime-local" id="startTimeInput" title="开始时间">
+          <span class="time-sep">至</span>
+          <input class="meta-input" type="datetime-local" id="endTimeInput" title="结束时间">
+          <span class="duration-hint" id="durationHint">
+            <span class="material-icons" style="font-size:14px">timelapse</span>
+            <span id="durationText"></span>
+          </span>
+        </div>
+
         <textarea class="intro-input" id="introInput" placeholder="活动简介（可选，展示在卡片与列表页）" maxlength="500"></textarea>
 
         <!-- 正文工具条 -->
@@ -748,6 +795,10 @@
     const categorySelect = document.getElementById('categorySelect');
     const categoryTagPreview = document.getElementById('categoryTagPreview');
     const bilibiliInput = document.getElementById('bilibiliInput');
+    const startTimeInput = document.getElementById('startTimeInput');
+    const endTimeInput = document.getElementById('endTimeInput');
+    const durationHint = document.getElementById('durationHint');
+    const durationText = document.getElementById('durationText');
     const introInput = document.getElementById('introInput');
     const coverUploadBox = document.getElementById('coverUploadBox');
     const coverInput = document.getElementById('coverInput');
@@ -774,6 +825,43 @@
       const color = CATEGORY_COLORS[cat] || '#607D8B';
       categoryTagPreview.textContent = cat;
       categoryTagPreview.style.backgroundColor = color;
+    }
+
+    // ========== 活动时间：持续时长预览 ==========
+    function updateDurationHint() {
+      const s = startTimeInput.value;
+      const e = endTimeInput.value;
+      if (!s || !e) {
+        durationHint.classList.remove('show');
+        return;
+      }
+      const start = new Date(s);
+      const end = new Date(e);
+      if (isNaN(start) || isNaN(end) || end <= start) {
+        durationHint.classList.remove('show');
+        if (e && end <= start) showToast('结束时间需晚于开始时间', 'error');
+        return;
+      }
+      const diff = end - start;
+      const days = Math.floor(diff / 86400000);
+      const hours = Math.floor((diff % 86400000) / 3600000);
+      const minutes = Math.floor((diff % 3600000) / 60000);
+      let text = '持续 ';
+      if (days > 0) text += days + ' 天';
+      if (hours > 0) text += (days > 0 ? ' ' : '') + hours + ' 小时';
+      if (days === 0 && hours === 0 && minutes > 0) text += minutes + ' 分钟';
+      if (days === 0 && hours === 0 && minutes === 0) text += '不足 1 分钟';
+      durationText.textContent = text;
+      durationHint.classList.add('show');
+    }
+
+    startTimeInput.addEventListener('change', updateDurationHint);
+    endTimeInput.addEventListener('change', updateDurationHint);
+
+    // "YYYY-MM-DD HH:mm:ss" → datetime-local 需要的 "YYYY-MM-DDTHH:mm"
+    function toLocalInputValue(s) {
+      if (!s) return '';
+      return String(s).replace(' ', 'T').slice(0, 16);
     }
 
     // ========== 登录检查 ==========
@@ -953,6 +1041,8 @@
         categoryColorsJson: CATEGORY_COLORS,
         intro: introInput.value.trim(),
         bilibili: bilibiliInput.value.trim(),
+        startTime: startTimeInput.value ? startTimeInput.value.replace('T', ' ') : null,
+        endTime: endTimeInput.value ? endTimeInput.value.replace('T', ' ') : null,
         coverImage: coverImageUrl,
         content: contentEditor.innerHTML.trim()
       };
@@ -990,6 +1080,9 @@
       updateCategoryTag();
       introInput.value = data.intro || '';
       bilibiliInput.value = data.bilibili || '';
+      startTimeInput.value = toLocalInputValue(data.startTime);
+      endTimeInput.value = toLocalInputValue(data.endTime);
+      updateDurationHint();
       if (data.coverImage) setCoverPreview(data.coverImage);
       contentEditor.innerHTML = data.content || '';
     }
@@ -1087,7 +1180,9 @@
               category: data.category,
               intro: data.intro,
               content: data.content,
-              coverImage: data.coverImage
+              coverImage: data.coverImage,
+              startTime: data.startTime,
+              endTime: data.endTime
             })
           });
           if (!res.ok) {
@@ -1115,6 +1210,8 @@
               bilibili: data.bilibili,
               content: data.content,
               coverImage: data.coverImage,
+              startTime: data.startTime,
+              endTime: data.endTime,
               categoriesJson: JSON.stringify(data.categoriesJson),
               categoryColorsJson: JSON.stringify(data.categoryColorsJson),
               photos: data.coverImage
@@ -1167,6 +1264,9 @@
         updateCategoryTag();
         introInput.value = album.intro || '';
         bilibiliInput.value = album.bilibili || '';
+        startTimeInput.value = toLocalInputValue(album.startTime);
+        endTimeInput.value = toLocalInputValue(album.endTime);
+        updateDurationHint();
         if (album.coverImage) setCoverPreview(album.coverImage);
         contentEditor.innerHTML = album.content || '';
         pageTitle.textContent = '编辑活动';

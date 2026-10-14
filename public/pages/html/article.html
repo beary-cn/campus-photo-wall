@@ -152,6 +152,32 @@
       top: 80px;
       align-self: flex-start;
     }
+
+    /* ========== 活动时间卡片（目录上方）========== */
+    .article-time-side {
+      background: #fff;
+      border: 1px solid #d0e3f7;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      font-size: 13px;
+      color: #555;
+      line-height: 1.8;
+    }
+    .article-time-side .time-label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #4a90d9;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .article-time-side .time-range {
+      display: block;
+      word-break: break-all;
+    }
+
     .toc-box {
       background: #fff;
       border-radius: 8px;
@@ -372,12 +398,15 @@
     }
 
     @media (max-width: 900px) {
-      .toc-sidebar { display: none; }
+      /* 移动端：目录隐藏，时间卡片保留在正文上方 */
+      .toc-sidebar { display: block; width: 100%; position: static; top: auto; }
+      .toc-sidebar .toc-box { display: none; }
       .article-container { padding: 20px; }
       .main-wrapper { padding-top: 70px; }
       .bilibili-embed iframe { height: 240px; }
     }
   </style>
+<base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -401,6 +430,8 @@
 
   <div class="main-wrapper">
     <aside class="toc-sidebar">
+      <!-- 活动时间卡片（目录上方） -->
+      <div class="article-time-side" id="article-time" style="display:none;"></div>
       <div class="toc-box">
         <div class="toc-title">📑 目录</div>
         <ul class="toc-list" id="toc-list"></ul>
@@ -472,6 +503,12 @@
       window.history.back();
     });
 
+    // 时间格式化："2026-10-14 09:00:00" → "2026-10-14 09:00"
+    function fmtTime(s) {
+      if (!s) return '';
+      return String(s).replace('T', ' ').slice(0, 16);
+    }
+
     // 后端数据 → 前端格式转换
     function normalizeAlbum(data) {
       return {
@@ -482,6 +519,8 @@
         intro: data.intro,
         bilibili: data.bilibili,
         content: data.content,
+        startTime: data.startTime,
+        endTime: data.endTime,
         id: data.folder || data.id,
         folder: data.folder,
         cards: (data.photos || []).map(p => ({
@@ -517,6 +556,8 @@
             intro: data.intro,
             bilibili: data.bilibili,
             content: data.content,
+            startTime: data.startTime,
+            endTime: data.endTime,
             folder: 'preview',
             photos: data.coverImage
               ? [{ title: data.title, intro: data.intro, imagePath: data.coverImage }]
@@ -560,6 +601,20 @@
       const title = card.title || data.title || articleId;
       document.title = title;
       document.getElementById('article-title').textContent = title;
+
+      // ========== 活动时间：展示在目录上方 ==========
+      const timeEl = document.getElementById('article-time');
+      const start = fmtTime(data.startTime);
+      const end = fmtTime(data.endTime);
+      if (start || end) {
+        const rangeHtml = (start && end)
+          ? `<span class="time-range">${start} ~ ${end}</span>`
+          : `<span class="time-range">${start || end}</span>`;
+        timeEl.innerHTML = `<span class="time-label"><span class="material-icons" style="font-size:15px">schedule</span>活动时间</span>${rangeHtml}`;
+        timeEl.style.display = 'block';
+      } else {
+        timeEl.style.display = 'none';
+      }
 
       const categories = data.categories || (data.category ? [data.category] : []);
       const categoryColors = data.categoryColors || categories.map(cat => getCategoryColor(cat));

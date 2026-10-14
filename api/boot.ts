@@ -277,6 +277,8 @@ app.post("/api/albums", async (c) => {
     bilibili?: string;
     content?: string;
     coverImage?: string;
+    startTime?: string | null;
+    endTime?: string | null;
     photos?: { title: string; intro?: string; imagePath: string }[];
   }>();
 
@@ -300,6 +302,8 @@ app.post("/api/albums", async (c) => {
     bilibili: body.bilibili,
     content: body.content,
     coverImage: body.coverImage,
+    startTime: body.startTime || null,
+    endTime: body.endTime || null,
   });
 
   const albumId = Number(albumResult.insertId);
@@ -338,6 +342,8 @@ app.patch("/api/albums/:id", async (c) => {
     intro?: string;
     content?: string;
     coverImage?: string;
+    startTime?: string | null;
+    endTime?: string | null;
   }>();
 
   await db.update(albums).set(body).where(eq(albums.id, id));

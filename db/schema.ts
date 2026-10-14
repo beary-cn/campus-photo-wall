@@ -42,6 +42,9 @@ export const albums = mysqlTable("albums", {
   bilibili: varchar("bilibili", { length: 512 }),
   content: text("content"),
   coverImage: varchar("coverImage", { length: 512 }),
+  // 活动持续时间：startTime ~ endTime（可空，格式 "YYYY-MM-DD HH:mm"）
+  startTime: timestamp("startTime", { mode: "string" }),
+  endTime: timestamp("endTime", { mode: "string" }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt")
     .defaultNow()
