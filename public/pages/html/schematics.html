@@ -669,6 +669,7 @@
         }
     </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <mc-navbar icon-src="../image/logo.png" search-placeholder="搜索集体合影..."></mc-navbar>
@@ -786,7 +787,6 @@
     <script>
         // ==================== 活动分类页面逻辑 ====================
 
-        const resourcePath = '../resource';
         const ITEMS_PER_PAGE = 20;
 
         let allSchematics = [];
@@ -803,6 +803,18 @@
             '笃行': ['笃行'],
             '尽美': ['尽美']
         };
+
+        const PLACEHOLDER_SVG = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect fill="%23f5f5f5" width="400" height="300"/><text fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-size="14">暂无图片</text></svg>';
+        const ERROR_SVG = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect fill="%23f5f5f5" width="400" height="300"/><text fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-size="14">加载失败</text></svg>';
+
+        // ========== 图片地址解析（核心修复）==========
+        // 完整路径（/ 或 http 开头）直接使用；
+        // 相对文件名（seed 导入的旧数据）→ /pages/resource/<folder>/ 下找
+        function resolveImage(path, folder) {
+            if (!path) return null;
+            if (/^(https?:)?\//.test(path)) return path;
+            return `/pages/resource/${folder}/${path}`;
+        }
 
         document.addEventListener('DOMContentLoaded', async () => {
             await loadSchematicsData();
@@ -875,15 +887,13 @@
 
                 const category = data.category || '';
                 const categories = data.categories || [];
-                const isSchematic = category === '活动分类' || categories.includes('活动分类');
 
-                // 侧边栏子分类：所有图集都显示，按关键词归类
+                // 所有照片都进入列表，分类由 autoCategorize 依据标题/简介关键词归类
                 if (data.cards && data.cards.length > 0) {
-                    data.cards.forEach((card, index) => {
+                    data.cards.forEach((card) => {
                         allSchematics.push({
                             ...card,
                             folder: data.folder,
-                            folderPath: `/uploads/${data.folder}`,
                             category: category,
                             categories: categories,
                             categoryColors: data.categoryColors || [],
@@ -957,13 +967,15 @@
 
             // 排序
             switch (currentSort) {
+                case 'name':
+                    filteredSchematics.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'zh'));
+                    break;
                 case 'newest':
+                case 'popular':
+                default:
+                    // 暂无热度数据，popular 与 newest 均按时间倒序
                     filteredSchematics.sort((a, b) => b.timestamp - a.timestamp);
                     break;
-                case 'popular':
-                    case 'name':
-                        filteredSchematics.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'zh'));
-                        break;
             }
 
             currentPage = 1;
@@ -1013,16 +1025,15 @@
             const card = document.createElement('div');
             card.className = 'schematic-card';
 
-            const imageUrl = item.image
-                ? `${item.folderPath}/${item.image}`
-                : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect fill="%23f5f5f5" width="400" height="300"/><text fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-size="14">暂无图片</text></svg>';
+            // 核心修复：使用 resolveImage 解析图片地址
+            const imageUrl = resolveImage(item.image, item.folder) || PLACEHOLDER_SVG;
 
             const autoCat = autoCategorize(item);
             const tagColor = getTagColor(autoCat);
 
             card.innerHTML = `
                 <div class="schematic-image-wrapper">
-                    <img class="schematic-image lazy" data-src="${imageUrl}" alt="${item.title || ''}">
+                    <img class="schematic-image lazy" data-src="${imageUrl}" alt="${escapeHtml(item.title || '')}">
                     <div class="schematic-overlay">
                         <div class="overlay-actions">
                             <button class="overlay-btn" title="查看大图" onclick="event.stopPropagation(); openModal('${imageUrl}', '${escapeHtml(item.title || '')}', '${autoCat}')">🔍</button>
@@ -1067,7 +1078,7 @@
                         img.src = img.dataset.src;
                         img.onload = () => img.classList.add('loaded');
                         img.onerror = () => {
-                            img.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect fill="%23f5f5f5" width="400" height="300"/><text fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-size="14">加载失败</text></svg>';
+                            img.src = ERROR_SVG;
                             img.classList.add('loaded');
                         };
                         imageObserver.unobserve(img);
