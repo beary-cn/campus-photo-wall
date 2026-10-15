@@ -56,6 +56,32 @@
             box-shadow: 0 4px 12px rgba(102,126,234,0.3);
         }
 
+        /* ========== 浮动发布按钮：底部居中、最高层级 ========== */
+        .btn-new-fab {
+            position: fixed;
+            left: 50%;
+            bottom: 32px;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            z-index: 10002;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.45);
+        }
+
+        .btn-new-fab .material-icons {
+            font-size: 28px;
+        }
+
+        .btn-new-fab:hover {
+            transform: translateX(-50%) translateY(-3px) scale(1.06);
+            box-shadow: 0 8px 24px rgba(102,126,234,0.55);
+        }
+
         .albums-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -219,9 +245,8 @@
     <div class="page-container">
         <div class="page-header">
             <div class="page-title">我的发布</div>
-            <button class="btn-new" id="newPostBtn">
+            <button class="btn-new btn-new-fab" id="newPostBtn" title="新建活动">
                 <span class="material-icons">add</span>
-                新建活动
             </button>
         </div>
 

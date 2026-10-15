@@ -401,6 +401,10 @@
             background: rgba(120, 120, 120, 0.85);  /* 已结束 - 灰 */
         }
 
+        .status-badge.notset {
+            background: rgba(255, 152, 0, 0.92);    /* 未规定时间 - 橙 */
+        }
+
         /* 悬停遮罩 */
         .schematic-overlay {
             position: absolute;
@@ -782,6 +786,13 @@
                         <span class="category-count" id="count-已结束">0</span>
                     </button>
                 </li>
+                <li class="category-item">
+                    <button class="category-link" data-category="未规定时间">
+                        <span class="category-icon">📅</span>
+                        <span class="category-name">未规定时间</span>
+                        <span class="category-count" id="count-未规定时间">0</span>
+                    </button>
+                </li>
             </ul>
 
             <div class="sidebar-footer">
@@ -864,7 +875,7 @@
         };
 
         // 状态分类（按活动开始/结束时间判断）
-        const STATUS_CATEGORIES = ['未开始', '进行中', '已结束'];
+        const STATUS_CATEGORIES = ['未开始', '进行中', '已结束', '未规定时间'];
 
         const PLACEHOLDER_SVG = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect fill="%23f5f5f5" width="400" height="300"/><text fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-size="14">暂无图片</text></svg>';
         const ERROR_SVG = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect fill="%23f5f5f5" width="400" height="300"/><text fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-size="14">加载失败</text></svg>';
@@ -877,15 +888,15 @@
         }
 
         // ========== 活动状态判断 ==========
-        // 返回：'未开始' | '进行中' | '已结束' | null（无时间信息）
+        // 返回：'未开始' | '进行中' | '已结束' | '未规定时间'
         function getStatus(item) {
-            if (!item.startTime && !item.endTime) return null;
+            if (!item.startTime && !item.endTime) return '未规定时间';
             const now = Date.now();
             const s = item.startTime ? new Date(String(item.startTime).replace(' ', 'T')).getTime() : null;
             const e = item.endTime ? new Date(String(item.endTime).replace(' ', 'T')).getTime() : null;
             if (s && !isNaN(s) && now < s) return '未开始';
             if (e && !isNaN(e) && now > e) return '已结束';
-            if (!s && !e) return null;
+            if (!s && !e) return '未规定时间';
             return '进行中';
         }
 
@@ -1129,6 +1140,8 @@
                 statusBadgeHtml = '<span class="status-badge ongoing">进行中</span>';
             } else if (status === '已结束') {
                 statusBadgeHtml = '<span class="status-badge ended">已结束</span>';
+            } else if (status === '未规定时间') {
+                statusBadgeHtml = '<span class="status-badge notset">未规定时间</span>';
             }
 
             card.innerHTML = `
