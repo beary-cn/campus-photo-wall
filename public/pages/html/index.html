@@ -53,7 +53,7 @@
     <section class="category-section" data-cat-section="明德">
       <div class="section-header">
         <h2 class="section-title">明德</h2>
-        <a class="view-more" href="javascript:void(0)" data-cat="明德">查看更多 →</a>
+        <a class="view-more" href="schematics.html?category=明德" target="_self">查看更多 →</a>
       </div>
       <div class="two-row-grid" id="grid-明德"></div>
     </section>
@@ -61,7 +61,7 @@
     <section class="category-section" data-cat-section="博学">
       <div class="section-header">
         <h2 class="section-title">博学</h2>
-        <a class="view-more" href="javascript:void(0)" data-cat="博学">查看更多 →</a>
+        <a class="view-more" href="schematics.html?category=博学" target="_self">查看更多 →</a>
       </div>
       <div class="two-row-grid" id="grid-博学"></div>
     </section>
@@ -69,7 +69,7 @@
     <section class="category-section" data-cat-section="笃行">
       <div class="section-header">
         <h2 class="section-title">笃行</h2>
-        <a class="view-more" href="javascript:void(0)" data-cat="笃行">查看更多 →</a>
+        <a class="view-more" href="schematics.html?category=笃行" target="_self">查看更多 →</a>
       </div>
       <div class="two-row-grid" id="grid-笃行"></div>
     </section>
@@ -77,7 +77,7 @@
     <section class="category-section" data-cat-section="尽美">
       <div class="section-header">
         <h2 class="section-title">尽美</h2>
-        <a class="view-more" href="javascript:void(0)" data-cat="尽美">查看更多 →</a>
+        <a class="view-more" href="schematics.html?category=尽美" target="_self">查看更多 →</a>
       </div>
       <div class="two-row-grid" id="grid-尽美"></div>
     </section>
@@ -332,11 +332,6 @@
 
           // ========== 四个分类区块（每类最多 8 个，按最新排序）==========
           CATEGORIES.forEach(cat => renderCategorySection(cat));
-
-          // ========== “查看更多”→ 筛选下方全部照片 ==========
-          document.querySelectorAll('.view-more[data-cat]').forEach(link => {
-            link.addEventListener('click', () => applyFilter(link.dataset.cat));
-          });
 
           // 清除筛选
           document.getElementById('filterChipClear').addEventListener('click', () => applyFilter(null));

@@ -903,6 +903,14 @@
         document.addEventListener('DOMContentLoaded', async () => {
             await loadSchematicsData();
             setupEventListeners();
+
+            // ========== URL 参数 ?category=xxx → 自动选中对应分类 ==========
+            const urlCat = new URLSearchParams(window.location.search).get('category');
+            const validCategories = ['all', ...Object.keys(CATEGORY_KEYWORDS), ...STATUS_CATEGORIES];
+            if (urlCat && validCategories.includes(urlCat)) {
+                const link = document.querySelector(`.category-link[data-category="${urlCat}"]`);
+                if (link) link.click();
+            }
         });
 
         const API_BASE = '/api';
@@ -994,20 +1002,30 @@
             }
         }
 
-        // ========== 自动分类（主题）==========
-        function autoCategorize(schematic) {
+        // ========== 主题分类（优先使用发布时选择的分类）==========
+        function getAlbumCategories(schematic) {
+            // 发布时已选择分类，直接使用数据里的 categories / category
+            if (schematic.categories && schematic.categories.length > 0) {
+                return schematic.categories;
+            }
+            if (schematic.category) return [schematic.category];
+            // 旧数据兜底：关键词匹配标题/简介
             const title = (schematic.title || '').toLowerCase();
             const intro = (schematic.intro || '').toLowerCase();
             const fullText = title + ' ' + intro;
-
             for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
                 for (const kw of keywords) {
                     if (fullText.includes(kw.toLowerCase())) {
-                        return cat;
+                        return [cat];
                     }
                 }
             }
-            return '其他';
+            return ['其他'];
+        }
+
+        // 卡片上展示的主分类（取第一个）
+        function autoCategorize(schematic) {
+            return getAlbumCategories(schematic)[0];
         }
 
         // ========== 更新分类计数 ==========
@@ -1022,10 +1040,12 @@
             }
 
             allSchematics.forEach(s => {
-                const autoCat = autoCategorize(s);
-                if (counts[autoCat] !== undefined) {
-                    counts[autoCat]++;
-                }
+                // 一个活动可能属于多个主题分类，每个都计数
+                getAlbumCategories(s).forEach(cat => {
+                    if (counts[cat] !== undefined) {
+                        counts[cat]++;
+                    }
+                });
                 const status = getStatus(s);
                 if (status && counts[status] !== undefined) {
                     counts[status]++;
@@ -1047,10 +1067,9 @@
                 // 按活动状态筛选
                 filteredSchematics = allSchematics.filter(s => getStatus(s) === currentCategory);
             } else {
-                // 按主题分类筛选
+                // 按主题分类筛选（使用发布时选择的分类）
                 filteredSchematics = allSchematics.filter(s => {
-                    const autoCat = autoCategorize(s);
-                    return autoCat === currentCategory;
+                    return getAlbumCategories(s).includes(currentCategory);
                 });
             }
 
